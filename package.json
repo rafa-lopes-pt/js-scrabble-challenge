@@ -18,6 +18,9 @@
   "license": "ISC",
   "prettier": "@boolean-uk/boolean-prettier-config",
   "dependencies": {
+    "antd": "^5.14.2",
+    "dayjs": "^1.11.10",
+    "framer-motion": "^11.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
