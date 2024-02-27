@@ -2,8 +2,8 @@
 
 const scrabble = require('../../src/scrabble')
 
-describe("Scrabble", () => {
-  describe("letter multipliers", () => {
+describe('Scrabble', () => {
+  describe('letter multipliers', () => {
     it('returns 6 for double letter o', () => {
       expect(scrabble('d{o}g')).toEqual(6)
     })
@@ -21,7 +21,7 @@ describe("Scrabble", () => {
     })
   })
 
-  describe("word multipliers", () => {
+  describe('word multipliers', () => {
     it('returns 10 for double letter o', () => {
       expect(scrabble('{dog}')).toEqual(10)
     })
@@ -38,7 +38,7 @@ describe("Scrabble", () => {
     })
   })
 
-  describe("edge cases", () => {
+  describe('edge cases', () => {
     it('returns 18 for letter and word multiplier', () => {
       expect(scrabble('{[d]og}')).toEqual(18)
     })
