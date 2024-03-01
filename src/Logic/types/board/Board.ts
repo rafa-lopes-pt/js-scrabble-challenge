@@ -8,7 +8,8 @@ import {
   WordValidationCallbackType
 } from '../word/word-utils'
 import Cell from './Cell'
-import { CELL_MULTIPLIERS_ENUM } from './board-utils'
+import { CELL_MULTIPLIERS_ENUM, applyMultiplierPoints } from './board-utils'
+import insertAllMultipliers from './multipliers-placement'
 
 export default class Board {
   private _grid: Cell[][]
@@ -26,259 +27,7 @@ export default class Board {
 
   //NOTE: This could be way better and much more optimized
   defineBoardMultipliers() {
-    //TW -> Corners and middle lines (H and 8)
-    //corners
-    /*
-      TL [0,0]                              TM[][]                                TR [this._grid.length - 1][0]
-    
-
-
-
-
-
-    
-       TL [0][this._grid[0].length - 1]                                     TR [this._grid.length - 1][this._grid[0].length - 1]
-    */
-
-    const TW_coordinates = [
-      //topLeft:
-      { col: 0, row: 0 },
-      //topMiddle:
-      { col: Math.ceil((this._grid.length - 1) / 2), row: 0 },
-      //topRight:
-      { col: this._grid.length - 1, row: 0 },
-      //MiddleLeft:
-      { col: 0, row: Math.ceil((this._grid[0].length - 1) / 2) },
-      //MiddleRight:
-      {
-        col: Math.ceil((this._grid.length - 1) / 2),
-        row: Math.ceil((this._grid[0].length - 1) / 2)
-      },
-      //bottomLeft:
-      { col: 0, row: this._grid[0].length - 1 },
-      //bottomMiddle:
-      {
-        col: Math.ceil((this._grid.length - 1) / 2),
-        row: this._grid[0].length - 1
-      },
-      //bottomRight:
-      { col: this._grid.length - 1, row: this._grid[0].length - 1 }
-    ]
-
-    for (let tw of TW_coordinates) {
-      this._grid[tw.col][tw.row] = new Cell(CELL_MULTIPLIERS_ENUM.TW)
-    }
-
-    const DW_coordinates = {
-      topLeftCorner: [
-        { col: 1, row: 1 },
-        { col: 2, row: 2 },
-        { col: 3, row: 3 },
-        { col: 4, row: 4 }
-      ],
-      topRightCorner: [
-        { col: this._grid.length - 2, row: 1 },
-        { col: this._grid.length - 3, row: 2 },
-        { col: this._grid.length - 4, row: 3 },
-        { col: this._grid.length - 5, row: 4 }
-      ],
-      bottomLeftCorner: [
-        { col: 0, row: this._grid[0].length - 2 },
-        { col: 0, row: this._grid[0].length - 3 },
-        { col: 0, row: this._grid[0].length - 4 },
-        { col: 0, row: this._grid[0].length - 5 }
-      ],
-      bottomRightCorner: [
-        { col: this._grid.length - 2, row: this._grid[0].length - 2 },
-        { col: this._grid.length - 3, row: this._grid[0].length - 3 },
-        { col: this._grid.length - 4, row: this._grid[0].length - 4 },
-        { col: this._grid.length - 5, row: this._grid[0].length - 5 }
-      ]
-    }
-    for (let corner in DW_coordinates) {
-      for (let dw of DW_coordinates[corner]) {
-        this._grid[dw.col][dw.row] = new Cell(CELL_MULTIPLIERS_ENUM.DW)
-      }
-    }
-
-    /*
-            [c1,c2]
-         [c1,c2,c3,c4]
-         [c1,c2,c3,c4]
-            [c1,c2]
-    */
-    const TL_coordinates = [
-      [
-        { col: Math.ceil(this._grid.length / 2) - 2, row: 1 },
-        { col: Math.ceil(this._grid.length / 2) + 2, row: 1 }
-      ],
-      //
-      [
-        { col: 1, row: Math.ceil(this._grid[0].length / 2) - 2 },
-        {
-          col: Math.ceil(this._grid.length / 2) - 2,
-          row: Math.ceil(this._grid[0].length / 2) - 2
-        },
-        {
-          col: Math.ceil(this._grid.length / 2) + 2,
-          row: Math.ceil(this._grid[0].length / 2) - 2
-        },
-        {
-          col: this._grid.length - 2,
-          row: Math.ceil(this._grid[0].length / 2) - 2
-        }
-      ],
-      //
-      [
-        { col: 1, row: Math.ceil(this._grid[0].length / 2) + 2 },
-        {
-          col: Math.ceil(this._grid.length / 2) - 2,
-          row: Math.ceil(this._grid[0].length / 2) + 2
-        },
-        {
-          col: Math.ceil(this._grid.length / 2) + 2,
-          row: Math.ceil(this._grid[0].length / 2) + 2
-        },
-        {
-          col: this._grid.length - 2,
-          row: Math.ceil(this._grid[0].length / 2) + 2
-        }
-      ],
-      //
-      [
-        {
-          col: Math.ceil(this._grid.length / 2) - 2,
-          row: this._grid[0].length - 2
-        },
-        {
-          col: Math.ceil(this._grid.length / 2) + 2,
-          row: this._grid[0].length - 2
-        }
-      ]
-    ]
-    for (let row of TL_coordinates) {
-      for (let tl of row) {
-        this._grid[tl.col][tl.row] = new Cell(CELL_MULTIPLIERS_ENUM.TL)
-      }
-    }
-
-    /*
-        TOP
-                      [c1,..............,c2]
-
-                            [c1,....,c2]
-                [c1,............,c2,............,c3]
-          
-        MID
-
-            [c1,...........,c2,.....,c3,...........,c4]
-            [....c1,...........................,c2....]
-            [c1,...........,c2,.....,c3,...........,c4]
-        
-        BOT = TOP mirrored
-                 
-                 
-    */
-    const DL_coordinates = {
-      top: [
-        [
-          { col: Math.floor(this._grid.length * (1 / 4)), row: 0 },
-          { col: Math.floor(this._grid.length * (3 / 4)), row: 0 }
-        ],
-        [
-          { col: Math.ceil(this._grid.length / 2) - 1, row: 2 },
-          { col: Math.ceil(this._grid.length / 2) + 1, row: 2 }
-        ],
-        [
-          { col: 0, row: 3 },
-          { col: Math.ceil(this._grid.length / 2), row: 3 },
-          { col: 0, row: 3 }
-        ]
-      ],
-      middle: [
-        [
-          {
-            col: Math.floor(this._grid.length * (1 / 4)) - 1,
-            row: Math.ceil(this._grid.length / 2) - 1
-          },
-          {
-            col: Math.ceil(this._grid.length / 2) - 1,
-            row: Math.ceil(this._grid.length / 2) - 1
-          },
-          {
-            col: Math.ceil(this._grid.length / 2) + 1,
-            row: Math.ceil(this._grid.length / 2) - 1
-          },
-          {
-            col: Math.floor(this._grid.length * (3 / 4)) - 1,
-            row: Math.ceil(this._grid.length / 2) - 1
-          }
-        ],
-        [
-          {
-            col: Math.floor(this._grid.length * (1 / 4)),
-            row: Math.ceil(this._grid.length / 2)
-          },
-          {
-            col: Math.floor(this._grid.length * (3 / 4)),
-            row: Math.ceil(this._grid.length / 2)
-          }
-        ],
-        [
-          {
-            col: Math.floor(this._grid.length / 4) - 1,
-            row: Math.ceil(this._grid.length / 2) + 1
-          },
-          {
-            col: Math.ceil(this._grid.length / 2) - 1,
-            row: Math.ceil(this._grid.length / 2) + 1
-          },
-          {
-            col: Math.ceil(this._grid.length / 2) + 1,
-            row: Math.ceil(this._grid.length / 2) + 1
-          },
-          {
-            col: Math.floor(this._grid.length * (3 / 4)) - 1,
-            row: Math.ceil(this._grid.length / 2) + 1
-          }
-        ]
-      ],
-      bottom: [
-        [
-          { col: 0, row: this._grid.length - 4 },
-          { col: Math.ceil(this._grid.length / 2), row: this._grid.length - 4 },
-          { col: 0, row: this._grid.length - 4 }
-        ],
-        [
-          {
-            col: Math.ceil(this._grid.length / 2) - 1,
-            row: this._grid.length - 3
-          },
-          {
-            col: Math.ceil(this._grid.length / 2) + 1,
-            row: this._grid.length - 3
-          }
-        ],
-        [
-          {
-            col: Math.floor(this._grid.length * (1 / 4)),
-            row: this._grid.length - 1
-          },
-          {
-            col: Math.floor(this._grid.length * (3 / 4)),
-            row: this._grid.length - 1
-          }
-        ]
-      ]
-    }
-
-    for (let zone in DL_coordinates) {
-      for (let row of DL_coordinates[zone]) {
-        for (let dl of row) {
-          this._grid[dl.col][dl.row] = new Cell(CELL_MULTIPLIERS_ENUM.DL)
-        }
-      }
-    }
+    insertAllMultipliers(this._grid)
   }
 
   //================================================= BOARD INTERACTION START
@@ -458,36 +207,7 @@ export default class Board {
   //gets calculated points && anchors parsed cells
   private getPoints() {
     let totalPoints = 0
-    const applyMultiplier = (m: WORD_MULTIPLIER_TYPE, points: number[]) => {
-      switch (m.value) {
-        case CELL_MULTIPLIERS_ENUM.DL: {
-          // -> Multiply specific letter by 2
-          return points.reduce(
-            (sum, p, i) => (i === m.index ? sum + p * 2 : sum + p),
-            0
-          )
-        }
-        case CELL_MULTIPLIERS_ENUM.TL: {
-          // -> Multiply specific letter by 3
-          return points.reduce(
-            (sum, p, i) => (i === m.index ? sum + p * 3 : sum + p),
-            0
-          )
-        }
-        case CELL_MULTIPLIERS_ENUM.DW: {
-          // -> Multiply whole word 3
-          return points.reduce((sum, p) => sum + p, 0) * 2
-        }
 
-        case CELL_MULTIPLIERS_ENUM.TW: {
-          // -> Multiply whole word 3
-          return points.reduce((sum, p) => sum + p, 0) * 3
-        }
-
-        default:
-          return points.reduce((sum, p) => sum + p, 0)
-      }
-    }
     for (let word of this._wordsList) {
       //ts error bypass
       const wordIndex = word.position.index as number
@@ -527,7 +247,7 @@ export default class Board {
           }
 
           //totalPoints
-          totalPoints = applyMultiplier(multiplier, pointsArr)
+          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
         }
         case VECTOR_DIRECTION_ENUM.VERTICAL: {
           //@ts-ignore word is defined -> position defined
@@ -560,7 +280,7 @@ export default class Board {
           }
 
           //totalPoints
-          totalPoints = applyMultiplier(multiplier, pointsArr)
+          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
         }
       }
     }
