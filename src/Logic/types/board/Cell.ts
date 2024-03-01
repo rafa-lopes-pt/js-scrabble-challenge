@@ -1,24 +1,28 @@
 import TileType from '../tiles/Tile'
-import { BOARD_MULTIPLIERS_ENUM } from './board-utils'
+import { CELL_MULTIPLIERS_ENUM } from './board-utils'
 
 export default class Cell {
   tile: TileType | null
-  private _multiplier: BOARD_MULTIPLIERS_ENUM
-  private _isMultiplierValid: boolean
+  private _multiplier: CELL_MULTIPLIERS_ENUM
   private _isAnchored: boolean
+  //
+  private _isMultiplierValid: boolean
 
   constructor(
-    multiplier: BOARD_MULTIPLIERS_ENUM = BOARD_MULTIPLIERS_ENUM.NULL
+    multiplier: CELL_MULTIPLIERS_ENUM = CELL_MULTIPLIERS_ENUM.NULL,
+    isAnchored: boolean = false,
+    tile?: TileType
   ) {
-    this.tile = null
+    this.tile = tile || null
     this._multiplier = multiplier
-    this._isAnchored = false
+    this._isAnchored = isAnchored
+    this._isMultiplierValid = !isAnchored
   }
 
   get multiplier() {
     return this._isMultiplierValid
       ? this._multiplier
-      : BOARD_MULTIPLIERS_ENUM.NULL
+      : CELL_MULTIPLIERS_ENUM.NULL
   }
 
   get isAnchored() {

@@ -12,21 +12,273 @@ import { CELL_MULTIPLIERS_ENUM } from './board-utils'
 
 export default class Board {
   private _grid: Cell[][]
-  private wordsList: Word[]
-  private mainWord: Word | undefined
+  private _wordsList: Word[]
+  private _mainWord: Word | undefined
 
-  constructor() {
-    this._grid = new Array(15).fill(new Array(15).fill(new Cell()))
-    /*
-    FIX: Add multipliers to the board!!!
+  constructor(grid?: Cell[][], wordsList?: Word[], mainWord?: Word) {
+    this._grid = grid || new Array(15).fill(new Array(15).fill(new Cell()))
+
+    this.defineBoardMultipliers()
+
+    this._wordsList = wordsList || new Array<Word>()
+    this._mainWord = mainWord
+  }
+
+  //NOTE: This could be way better and much more optimized
+  defineBoardMultipliers() {
     //TW -> Corners and middle lines (H and 8)
-    //DW -> diagonal from TW 4 times
-    //DL -> ah fuck it do it manually
-    //TL -> 
+    //corners
+    /*
+      TL [0,0]                              TM[][]                                TR [this._grid.length - 1][0]
+    
 
+
+
+
+
+    
+       TL [0][this._grid[0].length - 1]                                     TR [this._grid.length - 1][this._grid[0].length - 1]
     */
-    this.wordsList = []
-    this.mainWord = undefined
+
+    const TW_coordinates = [
+      //topLeft:
+      { col: 0, row: 0 },
+      //topMiddle:
+      { col: Math.ceil((this._grid.length - 1) / 2), row: 0 },
+      //topRight:
+      { col: this._grid.length - 1, row: 0 },
+      //MiddleLeft:
+      { col: 0, row: Math.ceil((this._grid[0].length - 1) / 2) },
+      //MiddleRight:
+      {
+        col: Math.ceil((this._grid.length - 1) / 2),
+        row: Math.ceil((this._grid[0].length - 1) / 2)
+      },
+      //bottomLeft:
+      { col: 0, row: this._grid[0].length - 1 },
+      //bottomMiddle:
+      {
+        col: Math.ceil((this._grid.length - 1) / 2),
+        row: this._grid[0].length - 1
+      },
+      //bottomRight:
+      { col: this._grid.length - 1, row: this._grid[0].length - 1 }
+    ]
+
+    for (let tw of TW_coordinates) {
+      this._grid[tw.col][tw.row] = new Cell(CELL_MULTIPLIERS_ENUM.TW)
+    }
+
+    const DW_coordinates = {
+      topLeftCorner: [
+        { col: 1, row: 1 },
+        { col: 2, row: 2 },
+        { col: 3, row: 3 },
+        { col: 4, row: 4 }
+      ],
+      topRightCorner: [
+        { col: this._grid.length - 2, row: 1 },
+        { col: this._grid.length - 3, row: 2 },
+        { col: this._grid.length - 4, row: 3 },
+        { col: this._grid.length - 5, row: 4 }
+      ],
+      bottomLeftCorner: [
+        { col: 0, row: this._grid[0].length - 2 },
+        { col: 0, row: this._grid[0].length - 3 },
+        { col: 0, row: this._grid[0].length - 4 },
+        { col: 0, row: this._grid[0].length - 5 }
+      ],
+      bottomRightCorner: [
+        { col: this._grid.length - 2, row: this._grid[0].length - 2 },
+        { col: this._grid.length - 3, row: this._grid[0].length - 3 },
+        { col: this._grid.length - 4, row: this._grid[0].length - 4 },
+        { col: this._grid.length - 5, row: this._grid[0].length - 5 }
+      ]
+    }
+    for (let corner in DW_coordinates) {
+      for (let dw of DW_coordinates[corner]) {
+        this._grid[dw.col][dw.row] = new Cell(CELL_MULTIPLIERS_ENUM.DW)
+      }
+    }
+
+    /*
+            [c1,c2]
+         [c1,c2,c3,c4]
+         [c1,c2,c3,c4]
+            [c1,c2]
+    */
+    const TL_coordinates = [
+      [
+        { col: Math.ceil(this._grid.length / 2) - 2, row: 1 },
+        { col: Math.ceil(this._grid.length / 2) + 2, row: 1 }
+      ],
+      //
+      [
+        { col: 1, row: Math.ceil(this._grid[0].length / 2) - 2 },
+        {
+          col: Math.ceil(this._grid.length / 2) - 2,
+          row: Math.ceil(this._grid[0].length / 2) - 2
+        },
+        {
+          col: Math.ceil(this._grid.length / 2) + 2,
+          row: Math.ceil(this._grid[0].length / 2) - 2
+        },
+        {
+          col: this._grid.length - 2,
+          row: Math.ceil(this._grid[0].length / 2) - 2
+        }
+      ],
+      //
+      [
+        { col: 1, row: Math.ceil(this._grid[0].length / 2) + 2 },
+        {
+          col: Math.ceil(this._grid.length / 2) - 2,
+          row: Math.ceil(this._grid[0].length / 2) + 2
+        },
+        {
+          col: Math.ceil(this._grid.length / 2) + 2,
+          row: Math.ceil(this._grid[0].length / 2) + 2
+        },
+        {
+          col: this._grid.length - 2,
+          row: Math.ceil(this._grid[0].length / 2) + 2
+        }
+      ],
+      //
+      [
+        {
+          col: Math.ceil(this._grid.length / 2) - 2,
+          row: this._grid[0].length - 2
+        },
+        {
+          col: Math.ceil(this._grid.length / 2) + 2,
+          row: this._grid[0].length - 2
+        }
+      ]
+    ]
+    for (let row of TL_coordinates) {
+      for (let tl of row) {
+        this._grid[tl.col][tl.row] = new Cell(CELL_MULTIPLIERS_ENUM.TL)
+      }
+    }
+
+    /*
+        TOP
+                      [c1,..............,c2]
+
+                            [c1,....,c2]
+                [c1,............,c2,............,c3]
+          
+        MID
+
+            [c1,...........,c2,.....,c3,...........,c4]
+            [....c1,...........................,c2....]
+            [c1,...........,c2,.....,c3,...........,c4]
+        
+        BOT = TOP mirrored
+                 
+                 
+    */
+    const DL_coordinates = {
+      top: [
+        [
+          { col: Math.floor(this._grid.length * (1 / 4)), row: 0 },
+          { col: Math.floor(this._grid.length * (3 / 4)), row: 0 }
+        ],
+        [
+          { col: Math.ceil(this._grid.length / 2) - 1, row: 2 },
+          { col: Math.ceil(this._grid.length / 2) + 1, row: 2 }
+        ],
+        [
+          { col: 0, row: 3 },
+          { col: Math.ceil(this._grid.length / 2), row: 3 },
+          { col: 0, row: 3 }
+        ]
+      ],
+      middle: [
+        [
+          {
+            col: Math.floor(this._grid.length * (1 / 4)) - 1,
+            row: Math.ceil(this._grid.length / 2) - 1
+          },
+          {
+            col: Math.ceil(this._grid.length / 2) - 1,
+            row: Math.ceil(this._grid.length / 2) - 1
+          },
+          {
+            col: Math.ceil(this._grid.length / 2) + 1,
+            row: Math.ceil(this._grid.length / 2) - 1
+          },
+          {
+            col: Math.floor(this._grid.length * (3 / 4)) - 1,
+            row: Math.ceil(this._grid.length / 2) - 1
+          }
+        ],
+        [
+          {
+            col: Math.floor(this._grid.length * (1 / 4)),
+            row: Math.ceil(this._grid.length / 2)
+          },
+          {
+            col: Math.floor(this._grid.length * (3 / 4)),
+            row: Math.ceil(this._grid.length / 2)
+          }
+        ],
+        [
+          {
+            col: Math.floor(this._grid.length / 4) - 1,
+            row: Math.ceil(this._grid.length / 2) + 1
+          },
+          {
+            col: Math.ceil(this._grid.length / 2) - 1,
+            row: Math.ceil(this._grid.length / 2) + 1
+          },
+          {
+            col: Math.ceil(this._grid.length / 2) + 1,
+            row: Math.ceil(this._grid.length / 2) + 1
+          },
+          {
+            col: Math.floor(this._grid.length * (3 / 4)) - 1,
+            row: Math.ceil(this._grid.length / 2) + 1
+          }
+        ]
+      ],
+      bottom: [
+        [
+          { col: 0, row: this._grid.length - 4 },
+          { col: Math.ceil(this._grid.length / 2), row: this._grid.length - 4 },
+          { col: 0, row: this._grid.length - 4 }
+        ],
+        [
+          {
+            col: Math.ceil(this._grid.length / 2) - 1,
+            row: this._grid.length - 3
+          },
+          {
+            col: Math.ceil(this._grid.length / 2) + 1,
+            row: this._grid.length - 3
+          }
+        ],
+        [
+          {
+            col: Math.floor(this._grid.length * (1 / 4)),
+            row: this._grid.length - 1
+          },
+          {
+            col: Math.floor(this._grid.length * (3 / 4)),
+            row: this._grid.length - 1
+          }
+        ]
+      ]
+    }
+
+    for (let zone in DL_coordinates) {
+      for (let row of DL_coordinates[zone]) {
+        for (let dl of row) {
+          this._grid[dl.col][dl.row] = new Cell(CELL_MULTIPLIERS_ENUM.DL)
+        }
+      }
+    }
   }
 
   //================================================= BOARD INTERACTION START
@@ -38,13 +290,13 @@ export default class Board {
     if (cell.isEmpty) {
       cell.tile = tile
 
-      if (!this.mainWord) {
-        this.mainWord = new Word()
+      if (!this._mainWord) {
+        this._mainWord = new Word()
       }
 
       //NOTE: Tile validation should be done in class Word
       // addTile checks if tile can be placed, according to the word, and checks against diagonals
-      return this.mainWord.addTile({ ...tile, col, row } as TileOnBoard)
+      return this._mainWord.addTile({ ...tile, col, row } as TileOnBoard)
     } else return false
   }
   takeTile(row: number, col: number) {
@@ -55,7 +307,7 @@ export default class Board {
       const tile = new TileOnBoard(cell.tile, row, col)
       cell.tile = null
       //Remove from word and return to rack
-      return this.mainWord?.removeTile(tile)
+      return this._mainWord?.removeTile(tile)
       //IMPROVE: Should check if tile equals the removed tile? kind of an impossible scenario
     }
     //
@@ -77,7 +329,7 @@ export default class Board {
     }
   }
   takeAllTiles() {
-    return this.mainWord?.removeAll()
+    return this._mainWord?.removeAll()
   }
   //================================================= BOARD INTERACTION END
 
@@ -97,15 +349,15 @@ export default class Board {
   }
 
   private findHorizontalWords() {
-    if (!this.mainWord) throw new Error('main word is not defined')
+    if (!this._mainWord) throw new Error('main word is not defined')
 
     for (
-      let i = this.mainWord.position.start as number;
-      i <= (this.mainWord.position.end as number);
+      let i = this._mainWord.position.start as number;
+      i <= (this._mainWord.position.end as number);
       i++
     ) {
       // Anchored cells have already been searched
-      if (this._grid[i][this.mainWord.position.index as number].isAnchored) {
+      if (this._grid[i][this._mainWord.position.index as number].isAnchored) {
         continue
       }
 
@@ -119,19 +371,19 @@ export default class Board {
         )
       )
 
-      this.wordsList.push(nWord)
+      this._wordsList.push(nWord)
     }
   }
   private findVerticalWords() {
-    if (!this.mainWord) throw new Error('main word is not defined')
+    if (!this._mainWord) throw new Error('main word is not defined')
 
     for (
-      let i = this.mainWord.position.start as number;
-      i <= (this.mainWord.position.end as number);
+      let i = this._mainWord.position.start as number;
+      i <= (this._mainWord.position.end as number);
       i++
     ) {
       // Anchored cells have already been searched
-      if (this._grid[this.mainWord.position.index as number][i].isAnchored) {
+      if (this._grid[this._mainWord.position.index as number][i].isAnchored) {
         continue
       }
       //All others check sides
@@ -144,7 +396,7 @@ export default class Board {
         )
       )
 
-      this.wordsList.push(nWord)
+      this._wordsList.push(nWord)
     }
   }
 
@@ -152,7 +404,7 @@ export default class Board {
     dictionaryCallback: WordValidationCallbackType
   ) {
     //QUICKFIX:Safety check -> may be redundant, but this way no duplicate words will be found
-    this.wordsList = []
+    this._wordsList = []
     /*
     - . . . . . . . . 
     - . R A I D . . .    All valid words
@@ -172,13 +424,13 @@ export default class Board {
     - . . . . . . . .
     */
     // ============================== IS THE MAIN WORD VALID?
-    this.mainWord?.getMissingLettersFromBoard(this._grid)
-    await this.mainWord?.checkDictionary(dictionaryCallback)
-    if (!this.mainWord?.isValid) return false
+    this._mainWord?.getMissingLettersFromBoard(this._grid)
+    await this._mainWord?.checkDictionary(dictionaryCallback)
+    if (!this._mainWord?.isValid) return false
 
     // ============================== IF SO -> CHECK FOR ADDITIONAL WORDS
 
-    switch (this.mainWord.position.direction) {
+    switch (this._mainWord.position.direction) {
       case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
         this.findHorizontalWords()
       }
@@ -188,12 +440,12 @@ export default class Board {
     }
 
     // ============================== VALIDATE WORD LIST
-    for (const word of this.wordsList) {
+    for (const word of this._wordsList) {
       const isValid = await word.checkDictionary(dictionaryCallback)
       if (!isValid) {
         //If one of the found words is not valid, means that the word
         //cant be placed, even if its a real word
-        this.wordsList = []
+        this._wordsList = []
         return false
       }
     }
@@ -236,7 +488,7 @@ export default class Board {
           return points.reduce((sum, p) => sum + p, 0)
       }
     }
-    for (let word of this.wordsList) {
+    for (let word of this._wordsList) {
       //ts error bypass
       const wordIndex = word.position.index as number
       let multiplier: WORD_MULTIPLIER_TYPE = { index: -1, value: 0 }
@@ -330,7 +582,7 @@ export default class Board {
       //Somethings fishy
     }
 
-    this.mainWord?.removeAll()
+    this._mainWord?.removeAll()
 
     return points
   }
