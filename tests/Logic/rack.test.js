@@ -6,7 +6,7 @@ describe('class Rack', () => {
   const TEST_TILE = { points: 2 }
   const TEST_TILE_2 = { points: 3 }
 
-  describe('add fn', () => {
+  describe('add(', () => {
     it('Should return true if an element was successfully added', () => {
       expect(rack.add(TEST_TILE)).toBeTruthy()
     })
@@ -41,7 +41,7 @@ describe('class Rack', () => {
     expect(rack.points).toEqual(12)
   })
 
-  describe('remove fn', () => {
+  describe('remove()', () => {
     it('Should always return length = 7', () => {
       const r = new Rack()
       let a = false
@@ -51,12 +51,12 @@ describe('class Rack', () => {
       }
     })
 
-    it('Should return the removed element', () => {
-      expect(rack.remove(0)).toEqual(TEST_TILE)
+    it('Should return true if element was found and removed', () => {
+      expect(rack.remove(0)).toBeTruthy()
     })
 
-    it('Should return undefined if element is not found', () => {
-      expect(rack.remove(123)).toBeUndefined()
+    it('Should return false if element was not found', () => {
+      expect(rack.remove(9)).toBeFalsy()
     })
   })
 
@@ -81,15 +81,17 @@ describe('class Rack', () => {
     expect(rack.isEmpty).toBeTruthy
   })
 
-  describe('shuffle fn', () => {
+  describe('shuffle()', () => {
     it("Should  shuffle the rack's contents", () => {
-      rack.add(TEST_TILE_2)
-      while (rack.isIncomplete) {
-        rack.add(TEST_TILE)
-      }
+      rack.add(1)
+      rack.add(2)
+      rack.add(3)
+      rack.add(4)
+      rack.add(5)
+      rack.add(6)
+      rack.add(7)
 
-      const originalArr = new Array(7).fill(TEST_TILE)
-      originalArr[0] = TEST_TILE_2
+      const originalArr = [1, 2, 3, 4, 5, 6, 7]
       rack.shuffle()
 
       expect(rack.map((e) => e)).not.toEqual(originalArr)
