@@ -13,7 +13,7 @@ export function isSequence(arr: number[]) {
 
 //LOOKUP: https://stackoverflow.com/questions/62303746/define-a-type-for-an-object-where-all-values-have-the-same-type
 //Define an object where all keys are of the same type
-export function random<T>(src: Object, previousValue: T | undefined): T {
+export function random<T>(src: Object, previousValue?: T): T {
   let nValue: T
   do {
     nValue =
