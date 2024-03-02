@@ -1,8 +1,7 @@
 import { useCallback, useReducer, useState } from 'react'
-import { Timer } from '../Logic/timer'
-import { LangSet } from '../Logic/types'
-import { Player } from '../Logic/player'
-import { Switch } from 'antd'
+import Timer from '../Logic/types/player/Timer'
+import LangSet from '../Logic/types/lang/LangSet'
+import Player from '../Logic/types/player/Player'
 
 enum PLAYER_ACTIONS {
   ADD,
@@ -55,8 +54,8 @@ id: string
 */
   const [timer, setTimer] = useState(t)
 
-  const [playerList, dispatchPlayerList] = useReducer<Player[]>(
-    [],
-    playerReducer
+  const [playerList, dispatchPlayerList] = useReducer(
+    playerReducer,
+    new Array<Player>()
   )
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { isSequence, random } from '../../src/Logic/utils'
-import { COLORS } from '../../src/Logic/player'
+import { COLORS } from '../../src/Logic/types/player/player-utils'
 
 describe('random()', () => {
   it('Should return a different value from the provided list', () => {

@@ -37,18 +37,18 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
       case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
         this._vector.sort((a, b) => a.col - b.col)
         this._direction = VECTOR_DIRECTION_ENUM.HORIZONTAL
-        this._start = this[0].col
-        this._end = this[this._vector.length - 1].col
-        this._index = this[0].row
+        this._start = this._vector[0].col
+        this._end = this._vector[this._vector.length - 1].col
+        this._index = this._vector[0].row
         return true
       }
 
       case VECTOR_DIRECTION_ENUM.VERTICAL: {
         this._vector.sort((a, b) => a.col - b.col)
         this._direction = VECTOR_DIRECTION_ENUM.VERTICAL
-        this._start = this[0].col
-        this._end = this[this._vector.length - 1].col
-        this._index = this[0].row
+        this._start = this._vector[0].col
+        this._end = this._vector[this._vector.length - 1].col
+        this._index = this._vector[0].row
         return true
       }
       default: {
@@ -65,12 +65,16 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
     this._vector.push(tile)
     this.sequence()
     //
-    if (!this.isValid) {
+    if (this.length > 1 && !this.isValid) {
       //This is not a vector
-      const i = this._vector.findIndex(
-        (e) => e.col === tile.col && e.row === tile.row
-      )
-      //REMOVE
+      /*
+      TILE 0 --- TILE 1
+        |
+        |
+      TILE C (new tile)
+
+*/
+      this.remove(tile)
       return false
     }
     //
@@ -78,10 +82,7 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   removeIndex(i: number) {
-    if (i >= 0 && i <= this._vector.length) {
-      return this._vector.splice(i, 1)[0]
-    }
-    return undefined
+    return this._vector.splice(i, 1)[0]
   }
 
   remove(tile: TileOnBoard) {
@@ -100,7 +101,7 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   get(index: number) {
-    return this._vector[index]
+    return { ...this._vector[index] } as TileOnBoard
   }
 
   map(callback: VectorMapCallbackType<TileOnBoard>) {
@@ -160,16 +161,16 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
         return isSequence(this._vector.map((e) => e.row))
       }
 
-      default: {
-        return (
-          isSequence(this._vector.map((e) => e.col)) ||
-          isSequence(this._vector.map((e) => e.row))
-        )
-      }
+      default:
+        return false
     }
   }
 
   toString() {
     return this._vector.reduce((w, e) => w + e.letter, '')
+  }
+
+  toArray() {
+    return this._vector.map((e) => ({ ...e }) as TileOnBoard)
   }
 }

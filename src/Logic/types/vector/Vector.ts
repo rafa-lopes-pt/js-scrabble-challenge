@@ -19,4 +19,5 @@ export default interface Vector<T> extends VectorPositionType {
   get: (index: number) => T
   map: (callback: VectorMapCallbackType<T>) => unknown[]
   toString: () => string
+  toArray: () => T[]
 }

@@ -25,6 +25,7 @@ export default class Rack {
     if (this.isIncomplete) {
       const emptyIndex = this._rack.indexOf(null)
       this._rack.splice(emptyIndex, 1, t)
+
       return true
     } else return false
   }

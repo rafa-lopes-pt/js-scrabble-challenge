@@ -19,7 +19,7 @@ export default class TileOnBoard implements TileType {
 
     if (keys.length !== tileKeys.length) return false
 
-    for (let key in keys) {
+    for (let key of keys) {
       if (!tile.hasOwnProperty(key) || this[key] !== tile[key]) return false
     }
 
