@@ -3,14 +3,14 @@ import TileType from './Tile'
 export default class TileOnBoard implements TileType {
   private _letter: string
   private _points: number
-  private _row: number
   private _col: number
+  private _row: number
 
-  constructor(tile: TileType, row: number, col: number) {
-    this._col = col
-    this._row = row
+  constructor(tile: TileType, col: number, row: number) {
     this._letter = tile.letter
     this._points = tile.points
+    this._col = col
+    this._row = row
   }
 
   isEqual(tile: TileOnBoard) {

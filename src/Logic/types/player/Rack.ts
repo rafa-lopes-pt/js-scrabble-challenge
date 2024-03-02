@@ -2,8 +2,12 @@ import TileType from '../tiles/Tile'
 
 export default class Rack {
   private _rack: Array<TileType | null>
-  constructor() {
-    this._rack = new Array(7).fill(null)
+
+  constructor(...items: Array<TileType | null>) {
+    if (items.length !== 7) {
+      items.push(...new Array(7).fill(null))
+    }
+    this._rack = items.slice(0, 7)
   }
 
   get length() {

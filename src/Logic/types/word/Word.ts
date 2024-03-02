@@ -1,13 +1,13 @@
+import Board from '../board/Board'
 import Cell from '../board/Cell'
-import Board from '../../Board'
 import TileOnBoard from '../tiles/TileOnBoard'
 import TileOnBoardVector from '../vector/TileOnBoardVector'
+import VectorPositionType from '../vector/VectorPosition'
 import {
   VECTOR_DIRECTION_ENUM,
   VectorMapCallbackType
 } from '../vector/vector-utils'
 import { WordValidationCallbackType } from '../word/word-utils'
-import VectorPositionType from '../vector/VectorPosition'
 
 export default class Word {
   /*

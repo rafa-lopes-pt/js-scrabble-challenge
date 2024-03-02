@@ -8,6 +8,8 @@ export default class Cell {
   //
   private _isMultiplierValid: boolean
 
+  //NOTE: isMultiplayerValid should never be passed in the constructor call because its derived from usage
+  //once isAnchored is true, isMultiplayerValid should always be false!
   constructor(
     multiplier: CELL_MULTIPLIERS_ENUM = CELL_MULTIPLIERS_ENUM.NULL,
     isAnchored: boolean = false,

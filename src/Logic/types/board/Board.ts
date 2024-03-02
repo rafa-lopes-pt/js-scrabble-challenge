@@ -1,3 +1,5 @@
+import { randomWord } from '../lang/lang-utils'
+import { TileBag } from '../tilebag/TileBag'
 import TileType from '../tiles/Tile'
 import TileOnBoard from '../tiles/TileOnBoard'
 import TileOnBoardVector from '../vector/TileOnBoardVector'
@@ -33,7 +35,7 @@ export default class Board {
   //================================================= BOARD INTERACTION START
   //IMPROVE: Return error codes instead of boolean?
   // show why tile cant be placed
-  placeTile(tile: TileType, row: number, col: number) {
+  placeTile(tile: TileType, col: number, row: number) {
     const cell = this._grid[col][row]
 
     if (cell.isEmpty) {
@@ -48,7 +50,7 @@ export default class Board {
       return this._mainWord.addTile({ ...tile, col, row } as TileOnBoard)
     } else return false
   }
-  takeTile(row: number, col: number) {
+  takeTile(col: number, row: number) {
     const cell = this._grid[col][row]
     //Remove from grid
     if (!cell.isEmpty && !cell.isAnchored) {
@@ -305,5 +307,35 @@ export default class Board {
     this._mainWord?.removeAll()
 
     return points
+  }
+
+  generateFirstWord(tileBag: TileBag) {
+    //Generates a valid word ->
+    //takes tiles from the tile bag ->
+    //places in the board center, randomly vertical/horizontal
+    const word = tileBag.generateWord()
+    const direction =
+      Math.ceil(Math.random() * 2) - 1
+        ? VECTOR_DIRECTION_ENUM.HORIZONTAL
+        : VECTOR_DIRECTION_ENUM.VERTICAL
+
+    const start = Math.ceil(word.length / 2)
+    const boardCenter = {
+      col: Math.ceil(this._grid.length / 2),
+      row: Math.ceil(this._grid[0].length / 2)
+    }
+
+    switch (direction) {
+      case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
+        for (let i = 0; i < word.length; i++) {
+          this.placeTile(word[i], boardCenter.col - start + i, boardCenter.row)
+        }
+      }
+      case VECTOR_DIRECTION_ENUM.VERTICAL: {
+        for (let i = 0; i < word.length; i++) {
+          this.placeTile(word[i], boardCenter.col, boardCenter.row - start + i)
+        }
+      }
+    }
   }
 }

@@ -1,24 +1,23 @@
-import dayjs, { Dayjs } from 'dayjs'
+import { Dayjs } from 'dayjs'
 
-export class Timer {
-  private _time: Dayjs
-  private showHours: boolean
+//FIX:
+//Extend dayjs class instead of creating a new one like this
 
-  constructor(h, m = 0, s = 0) {
-    this.showHours = typeof h === 'number' ? true : false
-    this._time = dayjs(new Date())
-      .hour(h || 0)
-      .minute(m)
-      .second(s)
+export default class Timer extends Dayjs {
+  private _showHours: boolean
+
+  constructor(date: Date, showHours?: boolean) {
+    super(date)
+    this._showHours = showHours || true
   }
 
   decrement() {
-    this._time = this._time.subtract(1, 'second')
+    this.subtract(1, 'second')
   }
 
   toString() {
-    if (this.showHours) {
-      return this._time.format('HH:mm:ss')
-    } else return this._time.format('mm:ss')
+    if (this._showHours) {
+      return this.format('HH:mm:ss')
+    } else return this.format('mm:ss')
   }
 }

@@ -1,6 +1,7 @@
 import TileSetType from '../tiles/TileSet'
 import { CHARACTER_TYPE_ENUM } from './lang-utils'
 import LangType from './Lang'
+import TileType from '../tiles/Tile'
 
 /*
 English-language editions of Scrabble contain 100 letter tiles, in the following distribution:
@@ -17,12 +18,12 @@ English-language editions of Scrabble contain 100 letter tiles, in the following
 */
 
 export default class LangSet {
-  protected lang: LangType
-  protected tileSet: TileSetType
+  protected _lang: LangType
+  protected _tileSet: TileSetType
 
   constructor(lang: LangType, set: TileSetType) {
-    this.lang = lang
-    this.tileSet = set
+    this._lang = lang
+    this._tileSet = set
   }
 
   static fromJSON(str) {
@@ -48,27 +49,30 @@ export default class LangSet {
   }
 
   get vowels() {
-    return this.tileSet.reduce(
+    return this._tileSet.reduce(
       (sum, e) => (e.type === CHARACTER_TYPE_ENUM.VOWEL ? sum++ : sum),
       0
     )
   }
 
   get consonants() {
-    return this.tileSet.reduce(
+    return this._tileSet.reduce(
       (sum, e) => (e.type === CHARACTER_TYPE_ENUM.CONSONANT ? sum++ : sum),
       0
     )
   }
 
   get special() {
-    return this.tileSet.reduce(
+    return this._tileSet.reduce(
       (sum, e) => (e.type === CHARACTER_TYPE_ENUM.SPECIAL ? sum++ : sum),
       0
     )
   }
 
   get total() {
-    return this.tileSet.length
+    return this._tileSet.length
+  }
+  get lang() {
+    return { ...this._lang }
   }
 }

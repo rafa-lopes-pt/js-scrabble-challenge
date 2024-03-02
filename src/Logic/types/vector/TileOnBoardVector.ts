@@ -4,26 +4,26 @@ import { VECTOR_DIRECTION_ENUM, VectorMapCallbackType } from './vector-utils'
 import { isSequence } from '../../utils'
 
 export default class TileOnBoardVector implements Vector<TileOnBoard> {
-  private vector: TileOnBoard[]
+  private _vector: TileOnBoard[]
   private _start: number | undefined
   private _end: number | undefined
   private _index: number | undefined
   private _direction: VECTOR_DIRECTION_ENUM
 
   constructor(...items: TileOnBoard[]) {
-    this.vector = items
+    this._vector = items
     this.sequence()
   }
 
   private findDirection() {
-    if (this.vector.length <= 1) {
+    if (this._vector.length <= 1) {
       return VECTOR_DIRECTION_ENUM.UNDEFINED
     }
 
-    if (this.vector.every((e) => e.col === this.vector[0].col))
+    if (this._vector.every((e) => e.col === this._vector[0].col))
       return VECTOR_DIRECTION_ENUM.VERTICAL
     //
-    else if (this.vector.every((e) => e.row === this.vector[0].row))
+    else if (this._vector.every((e) => e.row === this._vector[0].row))
       return VECTOR_DIRECTION_ENUM.HORIZONTAL
     //
     else return VECTOR_DIRECTION_ENUM.UNDEFINED
@@ -35,19 +35,19 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
 
     switch (this.direction) {
       case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
-        this.vector.sort((a, b) => a.col - b.col)
+        this._vector.sort((a, b) => a.col - b.col)
         this._direction = VECTOR_DIRECTION_ENUM.HORIZONTAL
         this._start = this[0].col
-        this._end = this[this.vector.length - 1].col
+        this._end = this[this._vector.length - 1].col
         this._index = this[0].row
         return true
       }
 
       case VECTOR_DIRECTION_ENUM.VERTICAL: {
-        this.vector.sort((a, b) => a.col - b.col)
+        this._vector.sort((a, b) => a.col - b.col)
         this._direction = VECTOR_DIRECTION_ENUM.VERTICAL
         this._start = this[0].col
-        this._end = this[this.vector.length - 1].col
+        this._end = this[this._vector.length - 1].col
         this._index = this[0].row
         return true
       }
@@ -62,12 +62,12 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   insert(tile: TileOnBoard) {
-    this.vector.push(tile)
+    this._vector.push(tile)
     this.sequence()
     //
     if (!this.isValid) {
       //This is not a vector
-      const i = this.vector.findIndex(
+      const i = this._vector.findIndex(
         (e) => e.col === tile.col && e.row === tile.row
       )
       //REMOVE
@@ -78,41 +78,41 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   removeIndex(i: number) {
-    if (i >= 0 && i <= this.vector.length) {
-      return this.vector.splice(i, 1)[0]
+    if (i >= 0 && i <= this._vector.length) {
+      return this._vector.splice(i, 1)[0]
     }
     return undefined
   }
 
   remove(tile: TileOnBoard) {
-    for (const el in this.vector) {
-      if (this.vector[el].isEqual(tile)) {
-        return this.vector.splice(+el, 1)[0]
+    for (const el in this._vector) {
+      if (this._vector[el].isEqual(tile)) {
+        return this._vector.splice(+el, 1)[0]
       }
     }
     return undefined
   }
 
   removeAll() {
-    const tiles = [...this.vector]
-    this.vector = []
+    const tiles = [...this._vector]
+    this._vector = []
     return tiles
   }
 
   get(index: number) {
-    return this.vector[index]
+    return this._vector[index]
   }
 
   map(callback: VectorMapCallbackType<TileOnBoard>) {
-    return this.vector.map(callback)
+    return this._vector.map(callback)
   }
 
   get first() {
-    return this.vector[0]
+    return this._vector[0]
   }
 
   get last() {
-    return this.vector[this.vector.length - 1]
+    return this._vector[this._vector.length - 1]
   }
 
   get start() {
@@ -132,7 +132,7 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   get length() {
-    return this.vector.length
+    return this._vector.length
   }
 
   get isValid() {
@@ -147,29 +147,29 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   get isEmpty() {
-    return this.vector.length === 0
+    return this._vector.length === 0
   }
 
   get isContinuous() {
     switch (this.direction) {
       case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
-        return isSequence(this.vector.map((e) => e.col))
+        return isSequence(this._vector.map((e) => e.col))
       }
 
       case VECTOR_DIRECTION_ENUM.VERTICAL: {
-        return isSequence(this.vector.map((e) => e.row))
+        return isSequence(this._vector.map((e) => e.row))
       }
 
       default: {
         return (
-          isSequence(this.vector.map((e) => e.col)) ||
-          isSequence(this.vector.map((e) => e.row))
+          isSequence(this._vector.map((e) => e.col)) ||
+          isSequence(this._vector.map((e) => e.row))
         )
       }
     }
   }
 
   toString() {
-    return this.vector.reduce((w, e) => w + e.letter, '')
+    return this._vector.reduce((w, e) => w + e.letter, '')
   }
 }

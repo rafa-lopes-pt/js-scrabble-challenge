@@ -1,4 +1,4 @@
 export default interface LangType {
-  id: string
+  code: string
   label: string
 }

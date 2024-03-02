@@ -9,7 +9,7 @@ export default function insertAllMultipliers(board: Cell[][]) {
   insertMultiplier(board, CELL_MULTIPLIERS_ENUM.DL)
 }
 
-//this allows me to select specific multipliers only
+//this allows to select specific multipliers only
 //might come in handy for custom games
 export function insertMultiplier(
   board: Cell[][],
