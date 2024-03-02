@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { Player } from '../../src/Logic/player'
+import Player from '../../../../src/Logic/types/player/Player'
+import TileType from '../../../../src/Logic/types/tiles/Tile'
 
-describe('Player', () => {
+describe('Player Class', () => {
   const player = new Player('123')
 
   describe('subtractRackPoints()', () => {
     it('Should subtract the rack points from the player points', () => {
-      const testTile = { points: 1 }
+      const testTile = { letter: 'A', points: 1 } as TileType
       while (player.rack.isIncomplete) {
         player.rack.add(testTile)
       }

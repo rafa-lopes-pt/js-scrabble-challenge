@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { isSequence, randomizer } from '../../src/Logic/utils'
+import { isSequence, random } from '../../src/Logic/utils'
 import { COLORS } from '../../src/Logic/player'
 
-describe('randomizer()', () => {
+describe('random()', () => {
   it('Should return a different value from the provided list', () => {
     const color = COLORS[0]
-    const nColor = randomizer(COLORS, color)
+    const nColor = random(COLORS, color)
     expect(nColor).not.toBe(color)
   })
 })
