@@ -2,8 +2,8 @@ import VectorPositionType from './VectorPosition'
 import { VectorMapCallbackType } from './vector-utils'
 
 export default interface Vector<T> extends VectorPositionType {
-  first: T
-  last: T
+  first: T | undefined
+  last: T | undefined
   length: number
   isEmpty: boolean
   /*
@@ -16,7 +16,7 @@ export default interface Vector<T> extends VectorPositionType {
   removeIndex: (i: number) => T | undefined
   remove: (el: T) => T | undefined
   removeAll: () => T[]
-  get: (index: number) => T
+  get: (index: number) => T | undefined
   map: (callback: VectorMapCallbackType<T>) => unknown[]
   toString: () => string
   toArray: () => T[]

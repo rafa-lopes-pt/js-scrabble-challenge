@@ -82,13 +82,17 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   removeIndex(i: number) {
-    return this._vector.splice(i, 1)[0]
+    const nTile = this._vector.splice(i, 1)[0]
+    this.sequence()
+    return nTile
   }
 
   remove(tile: TileOnBoard) {
     for (const el in this._vector) {
       if (this._vector[el].isEqual(tile)) {
-        return this._vector.splice(+el, 1)[0]
+        const nTile = this._vector.splice(+el, 1)[0]
+        this.sequence()
+        return nTile
       }
     }
     return undefined
@@ -97,11 +101,12 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   removeAll() {
     const tiles = [...this._vector]
     this._vector = []
+    this.sequence()
     return tiles
   }
 
   get(index: number) {
-    return { ...this._vector[index] } as TileOnBoard
+    return { ...this._vector[index] } as TileOnBoard | undefined
   }
 
   map(callback: VectorMapCallbackType<TileOnBoard>) {
@@ -109,11 +114,13 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
   }
 
   get first() {
-    return this._vector[0]
+    return { ...this._vector[0] } as TileOnBoard | undefined
   }
 
   get last() {
-    return this._vector[this._vector.length - 1]
+    return { ...this._vector[this._vector.length - 1] } as
+      | TileOnBoard
+      | undefined
   }
 
   get start() {

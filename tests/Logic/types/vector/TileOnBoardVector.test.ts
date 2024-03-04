@@ -68,27 +68,146 @@ describe('TileOnBoardVector', () => {
       vector.insert(TEST_HORIZONTAL_TILES.A)
       expect(vector.get(0)).toEqual(TEST_HORIZONTAL_TILES.A)
     })
+
+    it('Should update position properties on successful insert', () => {
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(3)
+      expect(vector.index).toBe(1)
+
+      vector.insert(TEST_HORIZONTAL_TILES.D)
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(4)
+      expect(vector.index).toBe(1)
+
+      //this should not be inserted
+      vector.insert(TEST_VERTICAL_TILES.E)
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(4)
+      expect(vector.index).toBe(1)
+    })
   })
 
   describe('removeIndex()', () => {
-    const vector = new TileOnBoardVector(TEST_HORIZONTAL_TILES.A)
+    let vector = new TileOnBoardVector()
 
     beforeEach(async () => {
-      // FIX: Dont seem to be able to use this...
-      //vector.insert(TEST_HORIZONTAL_TILES.A)
+      vector = new TileOnBoardVector(TEST_HORIZONTAL_TILES.A)
     })
-
     it('Should remove the element', () => {
       vector.removeIndex(0)
       expect(vector.length).toBe(0)
     })
     it('Should return the element', () => {
-      vector.insert(TEST_HORIZONTAL_TILES.A)
-      console.log(vector.toArray())
       expect(vector.removeIndex(0)).toEqual(TEST_HORIZONTAL_TILES.A)
     })
     it('Should return undefined if no element was found', () => {
       expect(vector.removeIndex(15)).toBeUndefined()
+    })
+
+    it('Should update position properties on successful remove', () => {
+      vector.insert(TEST_HORIZONTAL_TILES.B)
+      vector.insert(TEST_HORIZONTAL_TILES.D)
+
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(4)
+      expect(vector.index).toBe(1)
+
+      vector.removeIndex(2)
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(2)
+      expect(vector.index).toBe(1)
+
+      vector.removeIndex(1)
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.UNDEFINED)
+      expect(vector.start).toBe(undefined)
+      expect(vector.end).toBe(undefined)
+      expect(vector.index).toBe(undefined)
+    })
+  })
+
+  describe('remove()', () => {
+    let vector = new TileOnBoardVector()
+
+    beforeEach(async () => {
+      vector = new TileOnBoardVector(TEST_HORIZONTAL_TILES.A)
+    })
+    it('Should remove the element', () => {
+      vector.remove(TEST_HORIZONTAL_TILES.A)
+      expect(vector.length).toBe(0)
+    })
+    it('Should return the element', () => {
+      expect(vector.remove(TEST_HORIZONTAL_TILES.A)).toEqual(
+        TEST_HORIZONTAL_TILES.A
+      )
+    })
+    it('Should return undefined if no element was found', () => {
+      expect(vector.remove(TEST_HORIZONTAL_TILES.B)).toBeUndefined()
+    })
+
+    it('Should update position properties on successful remove', () => {
+      vector.insert(TEST_HORIZONTAL_TILES.B)
+      vector.insert(TEST_HORIZONTAL_TILES.D)
+
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(4)
+      expect(vector.index).toBe(1)
+
+      vector.remove(TEST_HORIZONTAL_TILES.D)
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(2)
+      expect(vector.index).toBe(1)
+
+      vector.remove(TEST_HORIZONTAL_TILES.B)
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.UNDEFINED)
+      expect(vector.start).toBe(undefined)
+      expect(vector.end).toBe(undefined)
+      expect(vector.index).toBe(undefined)
+    })
+  })
+
+  describe('removeAll()', () => {
+    const vector = new TileOnBoardVector()
+
+    beforeEach(async () => {
+      vector.insert(TEST_HORIZONTAL_TILES.A)
+      vector.insert(TEST_HORIZONTAL_TILES.B)
+      vector.insert(TEST_HORIZONTAL_TILES.C)
+    })
+    it('Should remove all the element', () => {
+      vector.removeAll()
+      expect(vector.length).toBe(0)
+    })
+    it('Should return all the elements', () => {
+      expect(vector.removeAll()).toEqual([
+        TEST_HORIZONTAL_TILES.A,
+        TEST_HORIZONTAL_TILES.B,
+        TEST_HORIZONTAL_TILES.C
+      ])
+    })
+    it('Should return an empty array if no element was found', () => {
+      vector.removeAll()
+      expect(vector.removeAll()).toEqual([])
+    })
+
+    it('Should update position properties on successful remove', () => {
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+      expect(vector.start).toBe(1)
+      expect(vector.end).toBe(3)
+      expect(vector.index).toBe(1)
+
+      vector.removeAll()
+
+      expect(vector.direction).toBe(VECTOR_DIRECTION_ENUM.UNDEFINED)
+      expect(vector.start).toBe(undefined)
+      expect(vector.end).toBe(undefined)
+      expect(vector.index).toBe(undefined)
     })
   })
 })
