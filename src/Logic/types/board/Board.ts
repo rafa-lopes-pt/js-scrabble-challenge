@@ -195,7 +195,6 @@ export default class Board {
     line: number,
     parser: CellParserCallback<T>
   ): T[]
-
   static getHorizontalLine<T>(
     board: Cell[][],
     line: number,
