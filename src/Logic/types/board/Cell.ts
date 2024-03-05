@@ -1,5 +1,6 @@
 import TileType from '../tiles/Tile'
-import { CELL_MULTIPLIERS_ENUM } from './board-utils'
+import TileOnBoard from '../tiles/TileOnBoard'
+import { CELL_MULTIPLIERS_ENUM, CellParserCallback } from './board-utils'
 
 export default class Cell {
   tile: TileType | null
@@ -11,13 +12,13 @@ export default class Cell {
   //NOTE: isMultiplayerValid should never be passed in the constructor call because its derived from usage
   //once isAnchored is true, isMultiplayerValid should always be false!
   constructor(
-    multiplier: CELL_MULTIPLIERS_ENUM = CELL_MULTIPLIERS_ENUM.NULL,
-    isAnchored: boolean = false,
-    tile?: TileType
+    tile?: TileType,
+    multiplier?: CELL_MULTIPLIERS_ENUM,
+    isAnchored?: boolean
   ) {
     this.tile = tile || null
-    this._multiplier = multiplier
-    this._isAnchored = isAnchored
+    this._multiplier = multiplier || CELL_MULTIPLIERS_ENUM.NULL
+    this._isAnchored = isAnchored || false
     this._isMultiplierValid = !isAnchored
   }
 
@@ -32,7 +33,7 @@ export default class Cell {
   }
 
   get isEmpty() {
-    return this.tile != null
+    return this.tile === null
   }
 
   set isAnchored(val: boolean) {
@@ -42,7 +43,12 @@ export default class Cell {
     this._isAnchored = val
   }
 
-  static parseTileFromCell = (cell: Cell, row: number, col: number) =>
+  static parseTileFromCell: CellParserCallback<TileOnBoard | null> = (
+    cell,
+    col,
+    row
+  ) => {
     //@ts-ignore isEmpty already checks if tile exists
-    !cell.isEmpty ? new TileOnBoard(cell.tile, row, col) : null
+    return !cell?.isEmpty ? new TileOnBoard(cell?.tile, col, row) : null
+  }
 }

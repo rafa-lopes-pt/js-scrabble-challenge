@@ -1,4 +1,5 @@
 import { WORD_MULTIPLIER_TYPE } from '../word/word-utils'
+import Cell from './Cell'
 
 export enum CELL_MULTIPLIERS_ENUM {
   NULL,
@@ -41,3 +42,5 @@ export function applyMultiplierPoints(
       return points.reduce((sum, p) => sum + p, 0)
   }
 }
+
+export type CellParserCallback<T> = (cell: Cell, col: number, row: number) => T

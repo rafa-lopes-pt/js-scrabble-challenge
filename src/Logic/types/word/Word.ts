@@ -96,7 +96,6 @@ export default class Word {
     this._possibleWord = new TileOnBoardVector()
     return this._tiles.insert(t)
   }
-
   removeTile(tile: TileOnBoard) {
     this._isValid = false
     this._possibleWord = new TileOnBoardVector()
@@ -184,6 +183,9 @@ export default class Word {
   }
 
   getMissingLettersFromBoard(board: Cell[][]) {
+    if (this._tiles.length === 0)
+      throw new Error('Word contains no user defined tiles')
+
     let possibleWord: TileOnBoardVector = new TileOnBoardVector()
 
     const lines = this.getBoardLine(board)
@@ -192,12 +194,15 @@ export default class Word {
 
     for (let line of lines) {
       //check if tiles vector is valid
+      // if its not, need to define a starting point
       if (!this._tiles.isValid) {
         switch (line.direction) {
           case VECTOR_DIRECTION_ENUM.HORIZONTAL:
+            //@ts-ignore - tiles len is checked at function start
             startingTile = this._tiles.get(0).row
             break
           case VECTOR_DIRECTION_ENUM.VERTICAL:
+            //@ts-ignore - tiles len is checked at function start
             startingTile = this._tiles.get(0).col
             break
         }

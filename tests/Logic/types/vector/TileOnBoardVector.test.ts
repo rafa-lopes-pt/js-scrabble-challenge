@@ -1,10 +1,7 @@
-import { describe, it, expect, beforeAll, afterEach, beforeEach } from 'vitest'
-import Rack from '../../../../src/Logic/types/player/Rack'
-import TileOnBoard from '../../../../src/Logic/types/tiles/TileOnBoard'
-import TileType from '../../../../src/Logic/types/tiles/Tile'
+import { beforeEach, describe, expect, it } from 'vitest'
 import TileOnBoardVector from '../../../../src/Logic/types/vector/TileOnBoardVector'
-import { TEST_HORIZONTAL_TILES, TEST_VERTICAL_TILES } from '../../../TEST_DATA'
 import { VECTOR_DIRECTION_ENUM } from '../../../../src/Logic/types/vector/vector-utils'
+import { TEST_HORIZONTAL_TILES, TEST_VERTICAL_TILES } from '../../../TEST_DATA'
 
 describe('TileOnBoardVector', () => {
   it('Should have undefined position properties if it only has 1 elements', () => {
@@ -13,11 +10,25 @@ describe('TileOnBoardVector', () => {
   })
 
   it('Should have all properties defined, if it has 2 or more elements', () => {
-    const vector = new TileOnBoardVector(
+    const vector_h = new TileOnBoardVector(
       TEST_HORIZONTAL_TILES.A,
       TEST_HORIZONTAL_TILES.B
     )
-    expect(vector.isValid).toBeTruthy()
+    expect(vector_h.isValid).toBeTruthy()
+    expect(vector_h.start).toBe(1)
+    expect(vector_h.end).toBe(2)
+    expect(vector_h.index).toBe(1)
+    expect(vector_h.direction).toBe(VECTOR_DIRECTION_ENUM.HORIZONTAL)
+
+    const vector_v = new TileOnBoardVector(
+      TEST_VERTICAL_TILES.A,
+      TEST_VERTICAL_TILES.B
+    )
+    expect(vector_v.isValid).toBeTruthy()
+    expect(vector_v.start).toBe(1)
+    expect(vector_v.end).toBe(2)
+    expect(vector_v.index).toBe(1)
+    expect(vector_v.direction).toBe(VECTOR_DIRECTION_ENUM.VERTICAL)
   })
 
   it('Should be able to infer the direction', () => {

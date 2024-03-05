@@ -10,7 +10,11 @@ import {
   WordValidationCallbackType
 } from '../word/word-utils'
 import Cell from './Cell'
-import { CELL_MULTIPLIERS_ENUM, applyMultiplierPoints } from './board-utils'
+import {
+  CELL_MULTIPLIERS_ENUM,
+  CellParserCallback,
+  applyMultiplierPoints
+} from './board-utils'
 import insertAllMultipliers from './multipliers-placement'
 
 export default class Board {
@@ -81,22 +85,133 @@ export default class Board {
   }
   takeAllTiles() {
     return this._mainWord?.removeAll()
+  } //gets calculated points && anchors parsed cells
+  private getPoints() {
+    let totalPoints = 0
+
+    for (let word of this._wordsList) {
+      //ts error bypass
+      const wordIndex = word.position.index as number
+      let multiplier: WORD_MULTIPLIER_TYPE = { index: -1, value: 0 }
+
+      let pointsArr = []
+      switch (word.position.direction) {
+        //IMPROVE: This could be defined in a single function that takes a callback to get the current cell
+        case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
+          //@ts-ignore word is defined -> position defined
+          const line = Board.getHorizontalLine(
+            this._grid,
+            //@ts-ignore word is defined -> position defined
+            wordIndex,
+            (e) => e
+          )
+
+          //Find the best multiplier
+          //sum all tile points and use that multiplier only
+          //follow enums order
+
+          for (
+            let i = word.position.start as number;
+            i <= (word.position.end as number);
+            i++
+          ) {
+            const cell = this._grid[i][wordIndex]
+            //find multiplier
+            if (cell.multiplier > multiplier.value) {
+              multiplier.value = cell.multiplier
+              multiplier.index = i
+            }
+            //@ts-ignore cell-tile will always be defined
+            pointsArr.push(cell.tile.points)
+            //set in stone!
+            cell.isAnchored = true
+          }
+
+          //totalPoints
+          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
+        }
+        case VECTOR_DIRECTION_ENUM.VERTICAL: {
+          //@ts-ignore word is defined -> position defined
+          const line = Board.getVerticalLine(
+            this._grid,
+            //@ts-ignore word is defined -> position defined
+            wordIndex,
+            (e) => e
+          )
+
+          //Find the best multiplier
+          //sum all tile points and use that multiplier only
+          //follow enums order
+
+          for (
+            let i = word.position.start as number;
+            i <= (word.position.end as number);
+            i++
+          ) {
+            const cell = this._grid[wordIndex][i]
+            //find multiplier
+            if (cell.multiplier > multiplier.value) {
+              multiplier.value = cell.multiplier
+              multiplier.index = i
+            }
+            //@ts-ignore cell-tile will always be defined
+            pointsArr.push(cell.tile.points)
+            //set in stone!
+            cell.isAnchored = true
+          }
+
+          //totalPoints
+          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
+        }
+      }
+    }
+    return totalPoints
+  }
+
+  //Validates placement -> calcs points -> anchors cells -> resets mainWord
+  async submitTiles(dictionaryCallback: WordValidationCallbackType) {
+    if (!(await this.validatePlacement(dictionaryCallback))) {
+      //placement is not valid, cant submit
+      return false
+    }
+
+    //placement is valid! well played :)
+    const points = this.getPoints()
+
+    if (points === 0) {
+      //NOTE: is this a possible case?
+      //Somethings fishy
+    }
+
+    this._mainWord?.removeAll()
+
+    return points
   }
   //================================================= BOARD INTERACTION END
 
-  static getHorizontalLine(board: Cell[][], line: number, parser: Function) {
-    const horizontalVector = (targetIdx: number) =>
-      board.map((e, i) => parser(e[targetIdx], i, targetIdx))
-    //@ts-ignore if direction is not undefined, index will always be defined
-    return horizontalVector(line)
+  static getHorizontalLine<T = Cell>(board: Cell[][]): T[]
+  static getHorizontalLine<T>(
+    board: Cell[][],
+    line: number,
+    parser: CellParserCallback<T>
+  ): T[]
+
+  static getHorizontalLine<T>(
+    board: Cell[][],
+    line: number,
+    parser: CellParserCallback<T>
+  ) {
+    return parser
+      ? board.map((e, i) => parser(e[line], i, line))
+      : board.map((e, i) => e[line])
   }
 
-  static getVerticalLine(board: Cell[][], line: number, parser: Function) {
-    const verticalVector = (targetIdx: number) =>
-      board[targetIdx].map((e, i) => parser(e, targetIdx, i))
-
-    //@ts-ignore if direction is not undefined, index will always be defined
-    return verticalVector(line)
+  static getVerticalLine<T>(
+    board: Cell[][],
+    line: number,
+    parser: CellParserCallback<T>
+  ) {
+    return board[line].map((e, i) => parser(e, line, i))
   }
 
   private findHorizontalWords() {
@@ -204,109 +319,6 @@ export default class Board {
     //if code reaches here, means that mainWord is valid AND can be placed
     //don't push mainWord to wordList -> Makes it harder to calc points
     return true
-  }
-
-  //gets calculated points && anchors parsed cells
-  private getPoints() {
-    let totalPoints = 0
-
-    for (let word of this._wordsList) {
-      //ts error bypass
-      const wordIndex = word.position.index as number
-      let multiplier: WORD_MULTIPLIER_TYPE = { index: -1, value: 0 }
-
-      let pointsArr = []
-      switch (word.position.direction) {
-        //IMPROVE: This could be defined in a single function that takes a callback to get the current cell
-        case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
-          //@ts-ignore word is defined -> position defined
-          const line = Board.getHorizontalLine(
-            this._grid,
-            //@ts-ignore word is defined -> position defined
-            wordIndex,
-            (e) => e
-          )
-
-          //Find the best multiplier
-          //sum all tile points and use that multiplier only
-          //follow enums order
-
-          for (
-            let i = word.position.start as number;
-            i <= (word.position.end as number);
-            i++
-          ) {
-            const cell = this._grid[i][wordIndex]
-            //find multiplier
-            if (cell.multiplier > multiplier.value) {
-              multiplier.value = cell.multiplier
-              multiplier.index = i
-            }
-            //@ts-ignore cell-tile will always be defined
-            pointsArr.push(cell.tile.points)
-            //set in stone!
-            cell.isAnchored = true
-          }
-
-          //totalPoints
-          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
-        }
-        case VECTOR_DIRECTION_ENUM.VERTICAL: {
-          //@ts-ignore word is defined -> position defined
-          const line = Board.getVerticalLine(
-            this._grid,
-            //@ts-ignore word is defined -> position defined
-            wordIndex,
-            (e) => e
-          )
-
-          //Find the best multiplier
-          //sum all tile points and use that multiplier only
-          //follow enums order
-
-          for (
-            let i = word.position.start as number;
-            i <= (word.position.end as number);
-            i++
-          ) {
-            const cell = this._grid[wordIndex][i]
-            //find multiplier
-            if (cell.multiplier > multiplier.value) {
-              multiplier.value = cell.multiplier
-              multiplier.index = i
-            }
-            //@ts-ignore cell-tile will always be defined
-            pointsArr.push(cell.tile.points)
-            //set in stone!
-            cell.isAnchored = true
-          }
-
-          //totalPoints
-          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
-        }
-      }
-    }
-    return totalPoints
-  }
-
-  //Validates placement -> calcs points -> anchors cells -> resets mainWord
-  async submitTiles(dictionaryCallback: WordValidationCallbackType) {
-    if (!(await this.validatePlacement(dictionaryCallback))) {
-      //placement is not valid, cant submit
-      return false
-    }
-
-    //placement is valid! well played :)
-    const points = this.getPoints()
-
-    if (points === 0) {
-      //NOTE: is this a possible case?
-      //Somethings fishy
-    }
-
-    this._mainWord?.removeAll()
-
-    return points
   }
 
   generateFirstWord(tileBag: TileBag) {

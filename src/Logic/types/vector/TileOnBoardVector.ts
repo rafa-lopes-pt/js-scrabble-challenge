@@ -44,10 +44,10 @@ export default class TileOnBoardVector implements Vector<TileOnBoard> {
       }
 
       case VECTOR_DIRECTION_ENUM.VERTICAL: {
-        this._vector.sort((a, b) => a.col - b.col)
+        this._vector.sort((a, b) => a.row - b.row)
         this._direction = VECTOR_DIRECTION_ENUM.VERTICAL
-        this._start = this._vector[0].col
-        this._end = this._vector[this._vector.length - 1].col
+        this._start = this._vector[0].row
+        this._end = this._vector[this._vector.length - 1].row
         this._index = this._vector[0].row
         return true
       }
