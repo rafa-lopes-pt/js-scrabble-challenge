@@ -189,12 +189,13 @@ export default class Board {
   }
   //================================================= BOARD INTERACTION END
 
-  static getHorizontalLine<T = Cell>(board: Cell[][]): T[]
+  // static getHorizontalLine<T = Cell>(board: Cell[][], line: number): T[]
   static getHorizontalLine<T>(
     board: Cell[][],
     line: number,
-    parser: CellParserCallback<T>
+    parser?: CellParserCallback<T>
   ): T[]
+
   static getHorizontalLine<T>(
     board: Cell[][],
     line: number,
