@@ -189,25 +189,18 @@ export default class Board {
   }
   //================================================= BOARD INTERACTION END
 
-  // static getHorizontalLine<T = Cell>(board: Cell[][], line: number): T[]
   static getHorizontalLine<T>(
-    board: Cell[][],
+    board: Cell[][] | TileOnBoard[][],
     line: number,
     parser?: CellParserCallback<T>
-  ): T[]
-
-  static getHorizontalLine<T>(
-    board: Cell[][],
-    line: number,
-    parser: CellParserCallback<T>
   ) {
     return parser
       ? board.map((e, i) => parser(e[line], i, line))
-      : board.map((e, i) => e[line])
+      : board.map((e) => e[line])
   }
 
   static getVerticalLine<T>(
-    board: Cell[][],
+    board: Cell[][] | TileOnBoard[][],
     line: number,
     parser: CellParserCallback<T>
   ) {

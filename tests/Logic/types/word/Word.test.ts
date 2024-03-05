@@ -33,7 +33,7 @@ describe('Word class', () => {
     it('Should update possibleWord', () => {
       EMPTY_TEST_BOARD[1][1].tile = { letter: 'A', points: 1 }
 
-      const line = Board.getHorizontalLine<Cell>(
+      const line = Board.getHorizontalLine(
         EMPTY_TEST_BOARD,
         1,
         Cell.parseTileFromCell
@@ -41,7 +41,7 @@ describe('Word class', () => {
 
       expect(line.some((e) => e.tile)).toBeTruthy()
 
-      const possibleWord = Word.getMissingLettersFromLine(1, line, new Word())
+      const possibleWord = Word.getMissingLettersFromLine(1, line, new TileOnBoardVector())
       //expect(possibleWord).toBe('BAD')
     })
   })
