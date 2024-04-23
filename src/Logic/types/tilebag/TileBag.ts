@@ -1,65 +1,115 @@
-import Rack from '../player/Rack'
-import LangSet from '../lang/LangSet'
-import TileType from '../tiles/Tile'
 import { random } from '../../utils'
-import TileFromSetType from '../tiles/TileFromSet'
+import LangSet from '../lang/LangSet'
 import { randomWord } from '../lang/lang-utils'
+import Rack from '../player/Rack'
+import TileType from '../tiles/Tile'
+import TileFromSetType from '../tiles/TileFromSet'
 
-export class TileBag extends LangSet {
+/**
+ * Represents scrabble's tile bag, containing all the remaining tiles, apart from the player's racks and the board
+ */
+export default class TileBag extends LangSet {
+  /**
+   * Given a valid tile, swaps it by another one in the bag
+   * @returns a different tile
+   */
   swap(tile: TileType) {
-    let newTile = this.takeTile()
-    this.putTile(tile)
-    return newTile
+    let newTile: TileType
+    if (this.putTile(tile)) {
+      newTile = this.takeTile(tile)
+      return { letter: newTile.letter, points: newTile.points } as TileType
+    } else return undefined
   }
-
+  /**
+   * Puts a tile back into the bag
+   * @returns true if tile is part of set, false otherwise
+   */
   private putTile(tile: TileType) {
-    const tileIndex = this._tileSet.findIndex((e) => e.letter === tile.letter)
-    if (tileIndex > 0) {
-      this._tileSet[tileIndex].quantity++
+    const tileIndex = this.findIndex(tile)
+
+    if (tileIndex >= 0) {
+      this.tileSet[tileIndex].quantity++
+
       return true
     } else return false
   }
-
-  private takeTile() {
-    const tile = random<TileFromSetType>(this._tileSet)
+  /**
+   * Takes a random tile from the bag.
+   * @param previous exclude this TileType object from being returned
+   */
+  private takeTile(previous?: TileType) {
+    const ensureNoDuplicate = (nValue: TileFromSetType) =>
+      previous?.letter == nValue.letter
+    let tile: TileFromSetType
+    do {
+      tile = random(this.tileSet, ensureNoDuplicate)
+    } while (tile.quantity === 0)
     tile.quantity--
+
     return { ...tile } as TileType
   }
-
-  has(search: string) {
-    return this._tileSet.find((e) => e.letter === search && e.quantity > 0)
-      ? true
-      : false
-  }
-
+  /**
+   * Given a rack, fills all the empty slots with random tiles
+   */
   fillRack(rack: Rack) {
     while (rack.isIncomplete) {
       rack.add(this.takeTile())
     }
-    return rack //rack is a ref...so...dont need the return i think
+    return rack
   }
+  /**
+   * Given a string, removes all the corresponding tiles from the bag
+   * @throws if bag doesn't have enough tiles to form word
+   */
+  getCorrespondingTiles(str: string) {
+    const wordTiles = new Array<TileFromSetType>()
 
-  getTiles(...str: string[]) {
-    const wordTiles = new Array<TileType>()
+    let isValid = true
+    //Find & take tiles
     for (let char of str) {
-      const tile = this._tileSet.find(
-        (e, i) => e.letter === char && e.quantity > 0
+      const tile = this.tileSet.find(
+        (e) => e.letter.toLowerCase() === char.toLowerCase() && e.quantity > 0
       )
-      tile && wordTiles.push({ ...tile })
+      if (!tile) {
+        isValid = false
+        break
+      }
+      tile.quantity--
+      wordTiles.push(tile)
     }
-    return wordTiles
-  }
+    //If invalid -> Return tiles to bag
+    if (!isValid) {
+      for (const tile of wordTiles) {
+        tile.quantity++
+      }
+      return null
+    }
 
-  generateWord() {
+    return wordTiles as TileType[]
+  }
+  /**
+   * Generates a random word from the lang code, and returns an array with the corresponding tiles
+   */
+  // FIX: MOVE THIS TO game logic hook
+  async generateWord() {
     let word = '',
-      isValid = true
+      tileArr = [],
+      isValid = false
+
     do {
-      word = randomWord(this.lang.code)
-      for (let letter of word) {
-        if (!this.has(letter)) isValid = false
+      word = await randomWord(this.lang.code)
+
+      try {
+        //@ts-ignore
+        tileArr = this.getCorrespondingTiles(word)
+        console.log('Word', tileArr)
+
+        isValid = true
+      } catch (e) {
+        isValid = false
       }
     } while (!isValid)
 
-    return this.getTiles(word)
+    return tileArr
   }
 }

@@ -1,353 +1,147 @@
-import { randomWord } from '../lang/lang-utils'
-import { TileBag } from '../tilebag/TileBag'
 import TileType from '../tiles/Tile'
-import TileOnBoard from '../tiles/TileOnBoard'
-import TileOnBoardVector from '../vector/TileOnBoardVector'
-import { VECTOR_DIRECTION_ENUM } from '../vector/vector-utils'
-import Word from '../word/Word'
-import {
-  WORD_MULTIPLIER_TYPE,
-  WordValidationCallbackType
-} from '../word/word-utils'
+import CellVector from '../vector/CellVector'
 import Cell from './Cell'
-import {
-  CELL_MULTIPLIERS_ENUM,
-  CellParserCallback,
-  applyMultiplierPoints
-} from './board-utils'
-import insertAllMultipliers from './multipliers-placement'
+import { BoardPresetType } from './board-presets'
+import { CELL_HANDLING_CODES } from './board-utils'
+import { MultiplierMap, MultiplierPositionType } from './multipliers-placement'
 
+//IMPROVE: Error handling -> Define custom error class and throw specific errors like tile placement and cell targeting
 export default class Board {
   private _grid: Cell[][]
-  private _wordsList: Word[]
-  private _mainWord: Word | undefined
+  private _mainWord: CellVector //vector
 
-  constructor(grid?: Cell[][], wordsList?: Word[], mainWord?: Word) {
-    this._grid = grid || new Array(15).fill(new Array(15).fill(new Cell()))
-
-    this.defineBoardMultipliers()
-
-    this._wordsList = wordsList || new Array<Word>()
-    this._mainWord = mainWord
+  constructor(type: BoardPresetType) {
+    this.createGrid(type.cols, type.rows)
+    this.insertMultipliers(type.multiplierMap)
+    this._mainWord = new CellVector()
   }
 
-  //NOTE: This could be way better and much more optimized
-  defineBoardMultipliers() {
-    insertAllMultipliers(this._grid)
+  //IMPROVE: Add a "fromGrid" method to import data from saved games
+
+  //====================================== BOARD GENERATION
+
+  /**
+   * Initializes grid with empty cells
+   */
+  private createGrid(cols: number, rows = cols) {
+    this._grid = Array.from({ length: cols }, (e, i) =>
+      Array.from({ length: rows }, (e, j) => new Cell(i, j))
+    )
+  }
+  /**
+   * Adds multipliers to cells
+   */
+  private insertMultipliers(multipliers: MultiplierMap) {
+    for (let multiplier of multipliers) {
+      const cell = this.get(multiplier.cell.col, multiplier.cell.row)
+      if (cell) cell.multiplier = multiplier.type
+    }
   }
 
-  //================================================= BOARD INTERACTION START
-  //IMPROVE: Return error codes instead of boolean?
-  // show why tile cant be placed
+  //================================================= TILE PLACEMENT START
+  /**
+   * Places a tile on the board if all conditions are met
+   * @throws based on invalid position
+   */
   placeTile(tile: TileType, col: number, row: number) {
-    const cell = this._grid[col][row]
+    const cell = this.get(col, row)
+    if (!cell) throw new Error('Target cell does not exists')
 
-    if (cell.isEmpty) {
-      cell.tile = tile
+    if (cell.isAnchored) return CELL_HANDLING_CODES.IS_ANCHORED
 
-      if (!this._mainWord) {
-        this._mainWord = new Word()
-      }
+    //IMPROVE: This targets unwanted swap behavior
+    //if cell is not empty, then existing tile needs to be returned to rack
+    if (!cell.isEmpty) return CELL_HANDLING_CODES.HAS_TILE
 
-      //NOTE: Tile validation should be done in class Word
-      // addTile checks if tile can be placed, according to the word, and checks against diagonals
-      return this._mainWord.addTile({ ...tile, col, row } as TileOnBoard)
-    } else return false
+    cell.tile = tile
+    if (!this._mainWord.insert(cell)) {
+      cell.clearTile()
+      return CELL_HANDLING_CODES.CANT_FORM_WORD
+    }
+
+    return CELL_HANDLING_CODES.IS_OK
   }
+  /**
+   * Takes a tile from the board if all conditions are met
+   * @throws based on invalid target
+   */
   takeTile(col: number, row: number) {
-    const cell = this._grid[col][row]
-    //Remove from grid
-    if (!cell.isEmpty && !cell.isAnchored) {
-      //@ts-ignore cell.tile is defined is !cell.isEmpty
-      const tile = new TileOnBoard(cell.tile, row, col)
-      cell.tile = null
-      //Remove from word and return to rack
-      return this._mainWord?.removeTile(tile)
-      //IMPROVE: Should check if tile equals the removed tile? kind of an impossible scenario
-    }
-    //
-    //IMPROVE: may be redundant -> UI should check if cell is empty before allowing to take piece
-    else if (cell.isEmpty) {
-      return undefined
-    }
-    //
-    // why? why not!
-    else {
+    const cell = this.get(col, row)
+    if (!cell) throw new Error('Target cell does not exists')
+
+    if (cell.isAnchored) throw new Error(' CELL_HANDLING_CODES.IS_ANCHORED')
+    if (cell.isEmpty) throw new Error('CELL_HANDLING_CODES.IS_EMPTY')
+
+    //If code reaches here, main word HAS to contain the cell && cell is defined
+    const tile = this._mainWord.remove(cell)?.tile
+    if (!tile)
       throw new Error(
-        `Congratulations! You found a weird bug...turns out that either
-         the tile you wanted to take, or the word you were trying to 
-         write got corrupted!
-         Not sure why this happened, but your game has to end.
-         On the upside...YOU'RE THE WINNNEEERRRR!!!
-         `
+        'Target cell is not present in main word. This behavior is unexpected.'
       )
-    }
+
+    cell.clearTile()
+    return tile
   }
+  /**
+   * Takes all tiles back from the board and empties _mainWord
+   */
   takeAllTiles() {
-    return this._mainWord?.removeAll()
-  } //gets calculated points && anchors parsed cells
-  private getPoints() {
-    let totalPoints = 0
-
-    for (let word of this._wordsList) {
-      //ts error bypass
-      const wordIndex = word.position.index as number
-      let multiplier: WORD_MULTIPLIER_TYPE = { index: -1, value: 0 }
-
-      let pointsArr = []
-      switch (word.position.direction) {
-        //IMPROVE: This could be defined in a single function that takes a callback to get the current cell
-        case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
-          //@ts-ignore word is defined -> position defined
-          const line = Board.getHorizontalLine(
-            this._grid,
-            //@ts-ignore word is defined -> position defined
-            wordIndex,
-            (e) => e
-          )
-
-          //Find the best multiplier
-          //sum all tile points and use that multiplier only
-          //follow enums order
-
-          for (
-            let i = word.position.start as number;
-            i <= (word.position.end as number);
-            i++
-          ) {
-            const cell = this._grid[i][wordIndex]
-            //find multiplier
-            if (cell.multiplier > multiplier.value) {
-              multiplier.value = cell.multiplier
-              multiplier.index = i
-            }
-            //@ts-ignore cell-tile will always be defined
-            pointsArr.push(cell.tile.points)
-            //set in stone!
-            cell.isAnchored = true
-          }
-
-          //totalPoints
-          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
-        }
-        case VECTOR_DIRECTION_ENUM.VERTICAL: {
-          //@ts-ignore word is defined -> position defined
-          const line = Board.getVerticalLine(
-            this._grid,
-            //@ts-ignore word is defined -> position defined
-            wordIndex,
-            (e) => e
-          )
-
-          //Find the best multiplier
-          //sum all tile points and use that multiplier only
-          //follow enums order
-
-          for (
-            let i = word.position.start as number;
-            i <= (word.position.end as number);
-            i++
-          ) {
-            const cell = this._grid[wordIndex][i]
-            //find multiplier
-            if (cell.multiplier > multiplier.value) {
-              multiplier.value = cell.multiplier
-              multiplier.index = i
-            }
-            //@ts-ignore cell-tile will always be defined
-            pointsArr.push(cell.tile.points)
-            //set in stone!
-            cell.isAnchored = true
-          }
-
-          //totalPoints
-          totalPoints = applyMultiplierPoints(multiplier, pointsArr)
-        }
-      }
-    }
-    return totalPoints
+    //remove from board
+    const tiles = this._mainWord.map((cell) =>
+      this.takeTile(cell.col, cell.row)
+    )
+    //empty main word
+    this._mainWord.removeAll()
+    return tiles
   }
 
-  //Validates placement -> calcs points -> anchors cells -> resets mainWord
-  async submitTiles(dictionaryCallback: WordValidationCallbackType) {
-    if (!(await this.validatePlacement(dictionaryCallback))) {
-      //placement is not valid, cant submit
-      return false
-    }
-
-    //placement is valid! well played :)
-    const points = this.getPoints()
-
-    if (points === 0) {
-      //NOTE: is this a possible case?
-      //Somethings fishy
-    }
-
-    this._mainWord?.removeAll()
-
-    return points
+  //================================================= TILE PLACEMENT START
+  /**
+   * Given a cell vector, finds any missing cells that may form a word, and returns
+   * the string it represents. Or undefined if no word was found.
+   */
+  private getWordFromVector(cellVector: CellVector) {
+    return cellVector
+      .apply(this._grid)
+      ?.reduce((sum, e) => sum + e.tile?.letter, '')
   }
-  //================================================= BOARD INTERACTION END
+  /**
+   * Returns an array with all the adjacent strings
+   * ( relative to _mainWord ) that may represent a word.
+   */
+  getAdjacentWords() {
+    if (!this._mainWord.isValid)
+      this._mainWord.inferVectorFromAdjacentPoint(this._grid)
+    const word = new CellVector(...(this._mainWord.apply(this._grid) as Cell[]))
+    const wordList: (string | undefined)[] = []
+    //
+    for (let i = word.start as number; i <= (word.end as number); i++) {
+      //In this case getCrossVectorFromSource will always return a defined vector
+      const possibleAdjacentWord = word.getCrossVectorFromSource(
+        this._grid,
+        i
+      ) as CellVector
 
-  // static getHorizontalLine<T = Cell>(board: Cell[][], line: number): T[]
-  static getHorizontalLine<T>(
-    board: Cell[][],
-    line: number,
-    parser?: CellParserCallback<T>
-  ): T[]
-
-  static getHorizontalLine<T>(
-    board: Cell[][],
-    line: number,
-    parser: CellParserCallback<T>
-  ) {
-    return parser
-      ? board.map((e, i) => parser(e[line], i, line))
-      : board.map((e, i) => e[line])
+      const adjacent = this.getWordFromVector(possibleAdjacentWord)
+      adjacent && wordList.push(adjacent)
+    }
+    return wordList
   }
 
-  static getVerticalLine<T>(
-    board: Cell[][],
-    line: number,
-    parser: CellParserCallback<T>
-  ) {
-    return board[line].map((e, i) => parser(e, line, i))
+  anchorCells() {
+    for (let i = 0; i < this._mainWord.length; i++) {
+      this._mainWord.get(i).anchorCell()
+    }
+    this._mainWord.removeAll()
+  }
+  /**
+   * @returns A reference to a board cell
+   */
+  get(col: number, row: number): Cell | undefined {
+    return this._grid[col][row]
   }
 
-  private findHorizontalWords() {
-    if (!this._mainWord) throw new Error('main word is not defined')
-
-    for (
-      let i = this._mainWord.position.start as number;
-      i <= (this._mainWord.position.end as number);
-      i++
-    ) {
-      // Anchored cells have already been searched
-      if (this._grid[i][this._mainWord.position.index as number].isAnchored) {
-        continue
-      }
-
-      //All others check sides
-      //start & end already searched by Word class
-      const nWord = new Word(
-        Word.getMissingLettersFromLine(
-          i,
-          Board.getVerticalLine(this._grid, i, Cell.parseTileFromCell),
-          new TileOnBoardVector()
-        )
-      )
-
-      this._wordsList.push(nWord)
-    }
-  }
-  private findVerticalWords() {
-    if (!this._mainWord) throw new Error('main word is not defined')
-
-    for (
-      let i = this._mainWord.position.start as number;
-      i <= (this._mainWord.position.end as number);
-      i++
-    ) {
-      // Anchored cells have already been searched
-      if (this._grid[this._mainWord.position.index as number][i].isAnchored) {
-        continue
-      }
-      //All others check sides
-      //start & end already searched by Word class
-      const nWord = new Word(
-        Word.getMissingLettersFromLine(
-          i,
-          Board.getHorizontalLine(this._grid, i, Cell.parseTileFromCell),
-          new TileOnBoardVector()
-        )
-      )
-
-      this._wordsList.push(nWord)
-    }
-  }
-
-  private async validatePlacement(
-    dictionaryCallback: WordValidationCallbackType
-  ) {
-    //QUICKFIX:Safety check -> may be redundant, but this way no duplicate words will be found
-    this._wordsList = []
-    /*
-    - . . . . . . . . 
-    - . R A I D . . .    All valid words
-    - . . L . E . . .     mainWord: DEPOT
-    - . . I . P . . .     wordsList: NOT, DEPOT
-    - . . E . O . . .
-    - . . N O T . . .
-    - . . . . . . . .
-
-    - . . . . . . . .
-    - . . . . . . . . 
-    - . R A I D . . .    DEPOT cannot be placed
-    - . . L . E H I .       EHI is not a valid word
-    - . . I . P . . .
-    - . . E . O . . .
-    - . . N O T . . .
-    - . . . . . . . .
-    */
-    // ============================== IS THE MAIN WORD VALID?
-    this._mainWord?.getMissingLettersFromBoard(this._grid)
-    await this._mainWord?.checkDictionary(dictionaryCallback)
-    if (!this._mainWord?.isValid) return false
-
-    // ============================== IF SO -> CHECK FOR ADDITIONAL WORDS
-
-    switch (this._mainWord.position.direction) {
-      case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
-        this.findHorizontalWords()
-      }
-      case VECTOR_DIRECTION_ENUM.VERTICAL: {
-        this.findVerticalWords()
-      }
-    }
-
-    // ============================== VALIDATE WORD LIST
-    for (const word of this._wordsList) {
-      const isValid = await word.checkDictionary(dictionaryCallback)
-      if (!isValid) {
-        //If one of the found words is not valid, means that the word
-        //cant be placed, even if its a real word
-        this._wordsList = []
-        return false
-      }
-    }
-
-    //if code reaches here, means that mainWord is valid AND can be placed
-    //don't push mainWord to wordList -> Makes it harder to calc points
-    return true
-  }
-
-  generateFirstWord(tileBag: TileBag) {
-    //Generates a valid word ->
-    //takes tiles from the tile bag ->
-    //places in the board center, randomly vertical/horizontal
-    const word = tileBag.generateWord()
-    const direction =
-      Math.ceil(Math.random() * 2) - 1
-        ? VECTOR_DIRECTION_ENUM.HORIZONTAL
-        : VECTOR_DIRECTION_ENUM.VERTICAL
-
-    const start = Math.ceil(word.length / 2)
-    const boardCenter = {
-      col: Math.ceil(this._grid.length / 2),
-      row: Math.ceil(this._grid[0].length / 2)
-    }
-
-    switch (direction) {
-      case VECTOR_DIRECTION_ENUM.HORIZONTAL: {
-        for (let i = 0; i < word.length; i++) {
-          this.placeTile(word[i], boardCenter.col - start + i, boardCenter.row)
-        }
-      }
-      case VECTOR_DIRECTION_ENUM.VERTICAL: {
-        for (let i = 0; i < word.length; i++) {
-          this.placeTile(word[i], boardCenter.col, boardCenter.row - start + i)
-        }
-      }
-    }
+  get mainWord() {
+    return this.getWordFromVector(this._mainWord)
   }
 }

@@ -1,307 +1,96 @@
-import Cell from './Cell'
 import { CELL_MULTIPLIERS_ENUM } from './board-utils'
 
-//this is just for convenience
-export default function insertAllMultipliers(board: Cell[][]) {
-  insertMultiplier(board, CELL_MULTIPLIERS_ENUM.TW)
-  insertMultiplier(board, CELL_MULTIPLIERS_ENUM.DW)
-  insertMultiplier(board, CELL_MULTIPLIERS_ENUM.TL)
-  insertMultiplier(board, CELL_MULTIPLIERS_ENUM.DL)
+export type MultiplierPositionType = {
+  cell: { col: number; row: number }
+  type: CELL_MULTIPLIERS_ENUM
 }
+export type MultiplierMap = Array<MultiplierPositionType>
 
-//this allows to select specific multipliers only
-//might come in handy for custom games
-export function insertMultiplier(
-  board: Cell[][],
-  multiplier: CELL_MULTIPLIERS_ENUM
-) {
-  switch (multiplier) {
-    case CELL_MULTIPLIERS_ENUM.TW:
-      parseTW(board)
-      break
-
-    case CELL_MULTIPLIERS_ENUM.DW:
-      parseDW(board)
-      break
-
-    case CELL_MULTIPLIERS_ENUM.TL:
-      parseTL(board)
-      break
-
-    case CELL_MULTIPLIERS_ENUM.DL:
-      parseDL(board)
-      break
-  }
-}
-
-// === Messy multiplier definition
-//TODO: improve that...maybe add new ones!
-// these functions/coordinates should work with a grid of any size! now necessarily squared
-
-// =======================================
-//TW -> Corners and middle lines (H and 8)
-//corners
-/*
-      TL [0,0]                              TM[][]                                TR [board.length - 1][0]
-    
-
-
-
-
-
-    
-       TL [0][board[0].length - 1]                                     TR [board.length - 1][board[0].length - 1]
-    */
-const TW_coordinates = (board: Cell[][]) => [
-  //topLeft:
-  { col: 0, row: 0 },
-  //topMiddle:
-  { col: Math.ceil((board.length - 1) / 2), row: 0 },
-  //topRight:
-  { col: board.length - 1, row: 0 },
-  //MiddleLeft:
-  { col: 0, row: Math.ceil((board[0].length - 1) / 2) },
-  //MiddleRight:
-  {
-    col: Math.ceil((board.length - 1) / 2),
-    row: Math.ceil((board[0].length - 1) / 2)
-  },
-  //bottomLeft:
-  { col: 0, row: board[0].length - 1 },
-  //bottomMiddle:
-  {
-    col: Math.ceil((board.length - 1) / 2),
-    row: board[0].length - 1
-  },
-  //bottomRight:
-  { col: board.length - 1, row: board[0].length - 1 }
+//============ MAP 1 =================
+const DL_Multipliers_Coordinates: MultiplierMap = [
+  { cell: { col: 3, row: 0 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 11, row: 0 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 6, row: 2 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 8, row: 2 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 0, row: 3 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 7, row: 3 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 14, row: 3 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  //
+  { cell: { col: 2, row: 6 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 6, row: 6 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 8, row: 6 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 12, row: 6 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 3, row: 7 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 11, row: 7 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 2, row: 8 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 6, row: 8 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 8, row: 8 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 12, row: 8 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  //
+  { cell: { col: 3, row: 14 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 11, row: 14 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 6, row: 12 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 8, row: 12 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 0, row: 11 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 7, row: 11 }, type: CELL_MULTIPLIERS_ENUM.DL },
+  { cell: { col: 14, row: 11 }, type: CELL_MULTIPLIERS_ENUM.DL }
 ]
-const parseTW = (board: Cell[][]) => {
-  const data = TW_coordinates(board)
-  for (let multiplier of data) {
-    board[multiplier.col][multiplier.row] = new Cell(CELL_MULTIPLIERS_ENUM.TW)
-  }
-}
+const TL_Multipliers_Coordinates: MultiplierMap = [
+  { cell: { col: 5, row: 1 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 9, row: 1 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  //
+  { cell: { col: 1, row: 5 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 5, row: 5 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 9, row: 5 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 13, row: 5 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  //
+  { cell: { col: 1, row: 9 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 5, row: 9 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 9, row: 9 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 13, row: 9 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  //
+  { cell: { col: 5, row: 13 }, type: CELL_MULTIPLIERS_ENUM.TL },
+  { cell: { col: 9, row: 13 }, type: CELL_MULTIPLIERS_ENUM.TL }
+]
+const DW_Multipliers_Coordinates: MultiplierMap = [
+  { cell: { col: 1, row: 1 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 13, row: 1 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 2, row: 2 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 12, row: 2 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 3, row: 3 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 11, row: 3 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 4, row: 4 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 10, row: 4 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  //
+  { cell: { col: 1, row: 13 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 13, row: 13 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 2, row: 12 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 12, row: 12 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 3, row: 11 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 11, row: 11 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 4, row: 10 }, type: CELL_MULTIPLIERS_ENUM.DW },
+  { cell: { col: 10, row: 10 }, type: CELL_MULTIPLIERS_ENUM.DW }
+]
+const TW_Multipliers_Coordinates: MultiplierMap = [
+  { cell: { col: 0, row: 0 }, type: CELL_MULTIPLIERS_ENUM.TW },
+  { cell: { col: 7, row: 0 }, type: CELL_MULTIPLIERS_ENUM.TW },
+  { cell: { col: 14, row: 0 }, type: CELL_MULTIPLIERS_ENUM.TW },
+  //
+  { cell: { col: 0, row: 7 }, type: CELL_MULTIPLIERS_ENUM.TW },
+  { cell: { col: 14, row: 7 }, type: CELL_MULTIPLIERS_ENUM.TW },
+  //
+  { cell: { col: 0, row: 14 }, type: CELL_MULTIPLIERS_ENUM.TW },
+  { cell: { col: 7, row: 14 }, type: CELL_MULTIPLIERS_ENUM.TW },
+  { cell: { col: 14, row: 14 }, type: CELL_MULTIPLIERS_ENUM.TW }
+]
+//====================================
 
-//diagonals from TW 4 times
-const DW_coordinates = (board: Cell[][]) => ({
-  topLeftCorner: [
-    { col: 1, row: 1 },
-    { col: 2, row: 2 },
-    { col: 3, row: 3 },
-    { col: 4, row: 4 }
-  ],
-  topRightCorner: [
-    { col: board.length - 2, row: 1 },
-    { col: board.length - 3, row: 2 },
-    { col: board.length - 4, row: 3 },
-    { col: board.length - 5, row: 4 }
-  ],
-  bottomLeftCorner: [
-    { col: 0, row: board[0].length - 2 },
-    { col: 0, row: board[0].length - 3 },
-    { col: 0, row: board[0].length - 4 },
-    { col: 0, row: board[0].length - 5 }
-  ],
-  bottomRightCorner: [
-    { col: board.length - 2, row: board[0].length - 2 },
-    { col: board.length - 3, row: board[0].length - 3 },
-    { col: board.length - 4, row: board[0].length - 4 },
-    { col: board.length - 5, row: board[0].length - 5 }
-  ]
-})
-const parseDW = (board: Cell[][]) => {
-  const data = DW_coordinates(board)
-  for (let corner in data) {
-    for (let multiplier of data[corner]) {
-      board[multiplier.col][multiplier.row] = new Cell(CELL_MULTIPLIERS_ENUM.DW)
-    }
-  }
-}
-/*
-            [c1,c2]
-         [c1,c2,c3,c4]
-         [c1,c2,c3,c4]
-            [c1,c2]
-    */
-const TL_coordinates = (board: Cell[][]) => [
+//IMPROVE: Add support for multiple multiplier maps
+export const multiplierMaps = [
   [
-    { col: Math.ceil(board.length / 2) - 2, row: 1 },
-    { col: Math.ceil(board.length / 2) + 2, row: 1 }
-  ],
-  //
-  [
-    { col: 1, row: Math.ceil(board[0].length / 2) - 2 },
-    {
-      col: Math.ceil(board.length / 2) - 2,
-      row: Math.ceil(board[0].length / 2) - 2
-    },
-    {
-      col: Math.ceil(board.length / 2) + 2,
-      row: Math.ceil(board[0].length / 2) - 2
-    },
-    {
-      col: board.length - 2,
-      row: Math.ceil(board[0].length / 2) - 2
-    }
-  ],
-  //
-  [
-    { col: 1, row: Math.ceil(board[0].length / 2) + 2 },
-    {
-      col: Math.ceil(board.length / 2) - 2,
-      row: Math.ceil(board[0].length / 2) + 2
-    },
-    {
-      col: Math.ceil(board.length / 2) + 2,
-      row: Math.ceil(board[0].length / 2) + 2
-    },
-    {
-      col: board.length - 2,
-      row: Math.ceil(board[0].length / 2) + 2
-    }
-  ],
-  //
-  [
-    {
-      col: Math.ceil(board.length / 2) - 2,
-      row: board[0].length - 2
-    },
-    {
-      col: Math.ceil(board.length / 2) + 2,
-      row: board[0].length - 2
-    }
+    ...DL_Multipliers_Coordinates,
+    ...TL_Multipliers_Coordinates,
+    ...DW_Multipliers_Coordinates,
+    ...TW_Multipliers_Coordinates
   ]
 ]
-
-const parseTL = (board: Cell[][]) => {
-  const data = TL_coordinates(board)
-
-  for (let row of data) {
-    for (let multiplier of row) {
-      board[multiplier.col][multiplier.row] = new Cell(CELL_MULTIPLIERS_ENUM.TL)
-    }
-  }
-}
-
-/*
-        TOP
-                      [c1,..............,c2]
-
-                            [c1,....,c2]
-                [c1,............,c2,............,c3]
-          
-        MID
-
-            [c1,...........,c2,.....,c3,...........,c4]
-            [....c1,...........................,c2....]
-            [c1,...........,c2,.....,c3,...........,c4]
-        
-        BOT = TOP mirrored
-                 
-                 
-    */
-const DL_coordinates = (board: Cell[][]) => ({
-  top: [
-    [
-      { col: Math.floor(board.length * (1 / 4)), row: 0 },
-      { col: Math.floor(board.length * (3 / 4)), row: 0 }
-    ],
-    [
-      { col: Math.ceil(board.length / 2) - 1, row: 2 },
-      { col: Math.ceil(board.length / 2) + 1, row: 2 }
-    ],
-    [
-      { col: 0, row: 3 },
-      { col: Math.ceil(board.length / 2), row: 3 },
-      { col: 0, row: 3 }
-    ]
-  ],
-  middle: [
-    [
-      {
-        col: Math.floor(board.length * (1 / 4)) - 1,
-        row: Math.ceil(board.length / 2) - 1
-      },
-      {
-        col: Math.ceil(board.length / 2) - 1,
-        row: Math.ceil(board.length / 2) - 1
-      },
-      {
-        col: Math.ceil(board.length / 2) + 1,
-        row: Math.ceil(board.length / 2) - 1
-      },
-      {
-        col: Math.floor(board.length * (3 / 4)) - 1,
-        row: Math.ceil(board.length / 2) - 1
-      }
-    ],
-    [
-      {
-        col: Math.floor(board.length * (1 / 4)),
-        row: Math.ceil(board.length / 2)
-      },
-      {
-        col: Math.floor(board.length * (3 / 4)),
-        row: Math.ceil(board.length / 2)
-      }
-    ],
-    [
-      {
-        col: Math.floor(board.length / 4) - 1,
-        row: Math.ceil(board.length / 2) + 1
-      },
-      {
-        col: Math.ceil(board.length / 2) - 1,
-        row: Math.ceil(board.length / 2) + 1
-      },
-      {
-        col: Math.ceil(board.length / 2) + 1,
-        row: Math.ceil(board.length / 2) + 1
-      },
-      {
-        col: Math.floor(board.length * (3 / 4)) - 1,
-        row: Math.ceil(board.length / 2) + 1
-      }
-    ]
-  ],
-  bottom: [
-    [
-      { col: 0, row: board.length - 4 },
-      { col: Math.ceil(board.length / 2), row: board.length - 4 },
-      { col: 0, row: board.length - 4 }
-    ],
-    [
-      {
-        col: Math.ceil(board.length / 2) - 1,
-        row: board.length - 3
-      },
-      {
-        col: Math.ceil(board.length / 2) + 1,
-        row: board.length - 3
-      }
-    ],
-    [
-      {
-        col: Math.floor(board.length * (1 / 4)),
-        row: board.length - 1
-      },
-      {
-        col: Math.floor(board.length * (3 / 4)),
-        row: board.length - 1
-      }
-    ]
-  ]
-})
-const parseDL = (board: Cell[][]) => {
-  const data = DL_coordinates(board)
-  for (let zone in data) {
-    for (let row of data[zone]) {
-      for (let multiplier of row) {
-        board[multiplier.col][multiplier.row] = new Cell(
-          CELL_MULTIPLIERS_ENUM.DL
-        )
-      }
-    }
-  }
-}

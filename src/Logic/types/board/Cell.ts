@@ -1,31 +1,53 @@
+import { isEqual } from '../../utils'
 import TileType from '../tiles/Tile'
-import TileOnBoard from '../tiles/TileOnBoard'
-import { CELL_MULTIPLIERS_ENUM, CellParserCallback } from './board-utils'
+import { CELL_MULTIPLIERS_ENUM } from './board-utils'
 
+/**
+ * Represents a slot from the game board.
+ * A cell can either be empty, or have a tile.
+ * During a player's turn, a tile may be added
+ * without it being anchored to the cell itself.
+ * Once a player submits a word, the cells in which
+ * he played should be anchored, and the multiplier
+ * becomes invalid.
+ * Anchored cells cannot have it's tile removed
+ */
 export default class Cell {
-  tile: TileType | null
+  private _tile: TileType | null
   private _multiplier: CELL_MULTIPLIERS_ENUM
   private _isAnchored: boolean
-  //
-  private _isMultiplierValid: boolean
+  private _col: number
+  private _row: number
 
-  //NOTE: isMultiplayerValid should never be passed in the constructor call because its derived from usage
-  //once isAnchored is true, isMultiplayerValid should always be false!
   constructor(
-    tile?: TileType,
-    multiplier?: CELL_MULTIPLIERS_ENUM,
-    isAnchored?: boolean
+    col: number,
+    row: number,
+    tile: TileType | null = null,
+    multiplier: CELL_MULTIPLIERS_ENUM = CELL_MULTIPLIERS_ENUM.NULL,
+    isAnchored: boolean = false
   ) {
-    this.tile = tile || null
-    this._multiplier = multiplier || CELL_MULTIPLIERS_ENUM.NULL
-    this._isAnchored = isAnchored || false
-    this._isMultiplierValid = !isAnchored
+    this._col = col
+    this._row = row
+    this._tile = tile
+    this._multiplier = multiplier
+    this._isAnchored = isAnchored
+  }
+
+  get col() {
+    return this._col
+  }
+  get row() {
+    return this._row
   }
 
   get multiplier() {
-    return this._isMultiplierValid
+    return this.isMultiplierValid
       ? this._multiplier
       : CELL_MULTIPLIERS_ENUM.NULL
+  }
+
+  get isMultiplierValid() {
+    return !this.isAnchored
   }
 
   get isAnchored() {
@@ -33,22 +55,30 @@ export default class Cell {
   }
 
   get isEmpty() {
-    return this.tile === null
+    return this._tile === null
   }
 
-  set isAnchored(val: boolean) {
-    if (val) {
-      this._isMultiplierValid = false
-    }
-    this._isAnchored = val
+  get tile() {
+    return this._tile ? ({ ...this._tile } as TileType) : null
   }
 
-  static parseTileFromCell: CellParserCallback<TileOnBoard | null> = (
-    cell,
-    col,
-    row
-  ) => {
-    //@ts-ignore isEmpty already checks if tile exists
-    return !cell?.isEmpty ? new TileOnBoard(cell?.tile, col, row) : null
+  anchorCell() {
+    this._isAnchored = true
+  }
+
+  isEqual(cell: Cell) {
+    return isEqual(this, cell)
+  }
+
+  set tile(tile: TileType | null) {
+    if (!this.isAnchored) this._tile = tile ? { ...tile } : null
+  }
+
+  clearTile() {
+    this._tile = null
+  }
+
+  set multiplier(m: CELL_MULTIPLIERS_ENUM) {
+    this._multiplier = m
   }
 }

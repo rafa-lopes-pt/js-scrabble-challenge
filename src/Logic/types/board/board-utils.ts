@@ -1,4 +1,3 @@
-import { WORD_MULTIPLIER_TYPE } from '../word/word-utils'
 import Cell from './Cell'
 
 export enum CELL_MULTIPLIERS_ENUM {
@@ -44,3 +43,15 @@ export function applyMultiplierPoints(
 }
 
 export type CellParserCallback<T> = (cell: Cell, col: number, row: number) => T
+
+export type DictionaryCallback = (word: string) => Promise<boolean>
+
+export enum CELL_HANDLING_CODES {
+  IS_ANCHORED,
+  HAS_TILE,
+  CANT_FORM_WORD,
+  IS_EMPTY,
+  IS_OK,
+  NOT_FOUND
+  // IS_UNAVAILABLE -> Implement in the future for boards that contain unreachable cells
+}

@@ -1,4 +1,4 @@
-export default class TileType {
+export default interface TileType {
   letter: string
   points: number
 }

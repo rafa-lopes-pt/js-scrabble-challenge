@@ -1,25 +1,32 @@
 import Cell from '../src/Logic/types/board/Cell'
-import { CELL_MULTIPLIERS_ENUM } from '../src/Logic/types/board/board-utils'
-import TileType from '../src/Logic/types/tiles/Tile'
-import TileOnBoard from '../src/Logic/types/tiles/TileOnBoard'
 
-export const TEST_VERTICAL_TILES = {
-  A: new TileOnBoard({ letter: 'A', points: 1 }, 1, 1),
-  B: new TileOnBoard({ letter: 'B', points: 1 }, 1, 2),
-  C: new TileOnBoard({ letter: 'C', points: 1 }, 1, 3),
-  D: new TileOnBoard({ letter: 'D', points: 1 }, 1, 4),
-  E: new TileOnBoard({ letter: 'E', points: 1 }, 1, 5),
-  F: new TileOnBoard({ letter: 'F', points: 1 }, 1, 6),
-  G: new TileOnBoard({ letter: 'G', points: 1 }, 1, 7)
+export const TEST_VERTICAL_CELLS = {
+  A: new Cell(1, 1, { letter: 'A', points: 1 }),
+  B: new Cell(1, 2, { letter: 'B', points: 1 }),
+  C: new Cell(1, 3, { letter: 'C', points: 1 }),
+  D: new Cell(1, 4, { letter: 'D', points: 1 }),
+  E: new Cell(1, 5, { letter: 'E', points: 1 }),
+  F: new Cell(1, 6, { letter: 'F', points: 1 }),
+  G: new Cell(1, 7, { letter: 'G', points: 1 })
 }
-export const TEST_HORIZONTAL_TILES = {
-  A: new TileOnBoard({ letter: 'A', points: 1 }, 1, 1),
-  B: new TileOnBoard({ letter: 'B', points: 1 }, 2, 1),
-  C: new TileOnBoard({ letter: 'C', points: 1 }, 3, 1),
-  D: new TileOnBoard({ letter: 'D', points: 1 }, 4, 1),
-  E: new TileOnBoard({ letter: 'E', points: 1 }, 5, 1),
-  F: new TileOnBoard({ letter: 'F', points: 1 }, 6, 1),
-  G: new TileOnBoard({ letter: 'G', points: 1 }, 7, 1)
+export const TEST_HORIZONTAL_CELLS = {
+  A: new Cell(1, 1, { letter: 'A', points: 1 }),
+  B: new Cell(2, 1, { letter: 'B', points: 1 }),
+  C: new Cell(3, 1, { letter: 'C', points: 1 }),
+  D: new Cell(4, 1, { letter: 'D', points: 1 }),
+  E: new Cell(5, 1, { letter: 'E', points: 1 }),
+  F: new Cell(6, 1, { letter: 'F', points: 1 }),
+  G: new Cell(7, 1, { letter: 'G', points: 1 })
+}
+
+export const TEST_TILES = {
+  A: { letter: 'A', points: 1 },
+  B: { letter: 'B', points: 1 },
+  C: { letter: 'C', points: 1 },
+  D: { letter: 'D', points: 1 },
+  E: { letter: 'E', points: 1 },
+  F: { letter: 'F', points: 1 },
+  G: { letter: 'G', points: 1 }
 }
 
 /*
@@ -28,6 +35,8 @@ Array.fill creates copies by reference!
 https://stackoverflow.com/a/37951043/22510505
 */
 export const createTestBoard = (length = 15) =>
-  Array.from({ length }, (e) => Array.from({ length }, (e) => new Cell()))
+  Array.from({ length }, (e, i) =>
+    Array.from({ length }, (e, j) => new Cell(i, j))
+  )
 
 export const EMPTY_TEST_BOARD = createTestBoard()

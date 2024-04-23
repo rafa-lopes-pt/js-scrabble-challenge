@@ -1,13 +1,17 @@
 import TileType from '../tiles/Tile'
 
+/**
+ * Represents the player's rack, having only 7 slots, each either with a tile, or empty
+ * Has the ability to swap tiles with the tile bag or to shuffle the order of it's own tiles
+ */
 export default class Rack {
   private _rack: Array<TileType | null>
 
   constructor(...items: Array<TileType | null>) {
-    if (items.length !== 7) {
-      items.push(...new Array(7).fill(null))
-    }
-    this._rack = items.slice(0, 7)
+    this._rack = Array(7).fill(null)
+    items &&
+      items.length > 0 &&
+      this._rack.splice(0, Math.min(items.length, 7), ...items.slice(0, 7))
   }
 
   get length() {
@@ -35,11 +39,12 @@ export default class Rack {
     if (e === undefined) return false
     return true
   }
-  clear() {
-    this._rack = new Array(7).fill(null)
+  map(callback: (e: TileType | null, i?: number) => any) {
+    return this._rack.map(callback)
   }
-  map(callback: (e: Rack | null, i?: number) => any) {
-    return this._rack.map(callback as any)
+
+  toArray() {
+    return this._rack
   }
 
   shuffle() {
@@ -57,6 +62,10 @@ export default class Rack {
 
   swap(nTile: TileType, swapIndex: number) {
     this.remove(swapIndex) && this.add(nTile)
+  }
+
+  clear() {
+    this._rack = new Array(7).fill(null)
   }
 
   get points() {

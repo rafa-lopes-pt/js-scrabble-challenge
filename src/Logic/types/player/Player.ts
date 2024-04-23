@@ -4,13 +4,17 @@ import { random } from '../../utils'
 import Rack from './Rack'
 import { AVATARS, COLORS } from './player-utils'
 
+/**
+ * Represents a player entity.
+ * Each player has an unique id, rack and timer.
+ */
 export default class Player {
   private _id: string
-  name: string
+  private _name: string
   private _color: COLORS
   private _avatar: AVATARS
-  points: number
-  timer: Timer | undefined
+  private _points: number
+  private _timer: Timer | undefined
   private _rack: Rack
 
   constructor(
@@ -23,21 +27,24 @@ export default class Player {
     rack?: Rack
   ) {
     this._id = id
-    this.name = name || 'John Doe'
+    this._name = name || 'Mike Hawk'
     this._color = color || this.randomizeColor()
     this._avatar = avatar || this.randomizeAvatar()
-    this.points = points || 0
+    this._points = points || 0
     //time and rack are initialized only by the game
     this._rack = rack || new Rack()
-    this.timer = timer || undefined
+    this._timer = timer || undefined
   }
 
-  randomizeColor() {
-    this._color = random(COLORS, this._color)
+  randomizeColor(prev?: COLORS) {
+    this._color = random(COLORS, (rnd) => (prev ? prev : this._color) !== rnd)
     return this._color
   }
-  randomizeAvatar() {
-    this._avatar = random(AVATARS, this._avatar)
+  randomizeAvatar(prev?: AVATARS) {
+    this._avatar = random(
+      AVATARS,
+      (rnd) => (prev ? prev : this._avatar) !== rnd
+    )
     return this._avatar
   }
 
@@ -48,16 +55,33 @@ export default class Player {
     this._rack.clear()
   }
 
+  //GETTERS
+  get id() {
+    return this._id
+  }
+  get name() {
+    return this._name
+  }
   get color() {
     return this._color
   }
   get avatar() {
     return this._avatar
   }
-  get id() {
-    return this._id
+  get points() {
+    return this._points
+  }
+  get timer() {
+    return this._timer
   }
   get rack() {
     return this._rack
+  }
+  //SETTERS
+  set name(name: string) {
+    this._name = name
+  }
+  set points(points: number) {
+    this._points = points
   }
 }
